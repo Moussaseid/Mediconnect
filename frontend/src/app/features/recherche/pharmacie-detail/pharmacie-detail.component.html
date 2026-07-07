@@ -1,0 +1,242 @@
+<div class="container-lg py-4 px-3" style="max-width:800px">
+
+  <button type="button" class="mc-back-link" (click)="retour()">
+    <i class="bi bi-arrow-left"></i>Retour
+  </button>
+
+  @if (chargement()) {
+    <div class="mc-card p-4 mb-4">
+      <div class="d-flex align-items-center gap-4">
+        <div class="mc-skeleton flex-shrink-0" style="width:72px;height:72px;border-radius:50%"></div>
+        <div class="flex-grow-1">
+          <div class="mc-skeleton mb-2" style="height:1.3rem;width:50%"></div>
+          <div class="mc-skeleton" style="height:.8rem;width:30%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+          @for (i of [1,2]; track i) {
+            <div class="mc-info-row"><div class="mc-skeleton" style="height:.8rem;width:70%"></div></div>
+          }
+        </div>
+      </div>
+      <div class="col-md-7">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+          @for (i of [1,2,3,4]; track i) {
+            <div class="list-group-item px-3 py-2">
+              <div class="d-flex justify-content-between">
+                <div class="mc-skeleton" style="height:.85rem;width:55%"></div>
+                <div class="mc-skeleton" style="height:.85rem;width:20%"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (pharmacie(); as p) {
+
+    <!-- En-tête -->
+    <div class="mc-card p-4 mb-4">
+      <div class="d-flex align-items-center gap-4 flex-wrap">
+        <div class="mc-avatar mc-avatar--lg mc-avatar--pharma">
+          <i class="bi bi-bag-heart-fill" style="font-size:1.6rem"></i>
+        </div>
+        <div class="flex-grow-1">
+          <h1 class="mc-section-title mb-1">{{ p.nom }}</h1>
+          <span class="mc-badge-spe mc-badge-spe--pharma">Pharmacie</span>
+          @if (p.adresse) {
+            <div class="d-flex align-items-center gap-2 mt-2 text-muted small">
+              <i class="bi bi-geo-alt mc-color-pharma"></i>
+              {{ p.adresse }}@if (p.codePostal) { — {{ p.codePostal }} }@if (p.ville && !p.adresse.includes(p.ville)) { {{ p.ville }} }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Contact -->
+      <div class="col-md-5">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-card-header"><i class="bi bi-person-lines-fill me-2"></i>Contact</div>
+          @if (p.telephone) {
+            <div class="mc-info-row">
+              <span class="mc-info-label"><i class="bi bi-telephone me-2"></i>Téléphone</span>
+              <a [href]="'tel:' + p.telephone" class="mc-info-value text-decoration-none">{{ p.telephone }}</a>
+            </div>
+          }
+          @if (p.email) {
+            <div class="mc-info-row">
+              <span class="mc-info-label"><i class="bi bi-envelope me-2"></i>Email</span>
+              <a [href]="'mailto:' + p.email" class="mc-info-value text-decoration-none text-truncate ms-2" style="max-width:180px">{{ p.email }}</a>
+            </div>
+          }
+          @if (!p.telephone && !p.email) {
+            <div class="p-3 text-muted small">Aucun contact renseigné.</div>
+          }
+        </div>
+      </div>
+
+      <!-- Médicaments disponibles -->
+      <div class="col-md-7">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-card-header"><i class="bi bi-capsule me-2"></i>Médicaments disponibles</div>
+
+          @if (messageReservation(); as msg) {
+            <div class="alert m-2 mb-0 py-2 small d-flex align-items-center gap-2"
+                 [class.alert-success]="msg.type === 'success'"
+                 [class.alert-danger]="msg.type === 'error'">
+              <i class="bi" [class.bi-check-circle-fill]="msg.type === 'success'" [class.bi-exclamation-triangle-fill]="msg.type === 'error'"></i>
+              {{ msg.texte }}
+            </div>
+          }
+
+          @if (ligneAReserver(); as sel) {
+
+            <!-- Panneau de confirmation -->
+            <div class="p-3">
+              <p class="small text-muted mb-3">Confirmez-vous la réservation ?</p>
+
+              <!-- Récapitulatif médicament -->
+              <div class="rounded-3 p-3 mb-3"
+                   style="border:2px solid var(--mc-teal,#0d9488);background:var(--mc-teal-lt,#f0fdfa)">
+                <div class="fw-semibold mb-1">{{ sel.medicament?.nom }}</div>
+                @if (sel.medicament?.forme || sel.medicament?.dosage) {
+                  <div class="text-muted small mb-1">{{ sel.medicament?.forme }} {{ sel.medicament?.dosage }}</div>
+                }
+                @if (sel.medicament?.surOrdonnance) {
+                  <span class="badge text-bg-warning mb-1" style="font-size:.65rem">Ordonnance requise</span>
+                }
+                <div class="d-flex align-items-center gap-3 mt-2">
+                  @if (sel.prixUnitaire != null) {
+                    <span class="fw-bold mc-color-pharma">{{ sel.prixUnitaire | number:'1.2-2' }} € / unité</span>
+                  }
+                  <span class="text-muted small">{{ sel.quantite }} en stock</span>
+                </div>
+              </div>
+
+              <!-- Quantité -->
+              <div class="mb-3">
+                <label class="mc-form-label"><i class="bi bi-123 me-1"></i>Quantité</label>
+                <input type="number" class="form-control form-control-sm" style="max-width:100px"
+                       min="1" [max]="sel.quantite"
+                       [value]="quantite()"
+                       (input)="onQuantiteChange($any($event.target).value)" />
+                @if (sel.prixUnitaire != null) {
+                  <div class="text-muted small mt-1">
+                    Total estimé : <strong class="mc-color-pharma">{{ (sel.prixUnitaire * quantite()) | number:'1.2-2' }} €</strong>
+                  </div>
+                }
+              </div>
+
+              <!-- Mode de retrait -->
+              <div class="mb-3">
+                <label class="mc-form-label"><i class="bi bi-box-seam me-1"></i>Mode de retrait</label>
+                <div class="d-flex gap-3 mt-1">
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" id="sur_place"
+                           [checked]="modeRetrait() === 'sur_place'"
+                           (change)="modeRetrait.set('sur_place')" />
+                    <label class="form-check-label small" for="sur_place">
+                      <i class="bi bi-shop me-1"></i>Sur place
+                    </label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="radio" id="livraison"
+                           [checked]="modeRetrait() === 'livraison'"
+                           (change)="modeRetrait.set('livraison')" />
+                    <label class="form-check-label small" for="livraison">
+                      <i class="bi bi-truck me-1"></i>Livraison
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              @if (modeRetrait() === 'livraison') {
+                <div class="mb-3">
+                  <label class="mc-form-label"><i class="bi bi-geo-alt me-1"></i>Adresse de livraison</label>
+                  <input type="text" class="form-control form-control-sm"
+                         placeholder="Ex : 12 rue de la Paix, 75001 Paris"
+                         [value]="adresseLivraison()"
+                         (input)="adresseLivraison.set($any($event.target).value)" />
+                </div>
+              }
+
+              <!-- Actions -->
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm flex-grow-1 mc-btn-pharma"
+                        [disabled]="reservationEnCours()"
+                        (click)="confirmerReservation()">
+                  @if (reservationEnCours()) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                  } @else {
+                    <i class="bi bi-check-lg me-1"></i>
+                  }
+                  Confirmer la réservation
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm"
+                        [disabled]="reservationEnCours()"
+                        (click)="annulerReservation()">
+                  Annuler
+                </button>
+              </div>
+            </div>
+
+          } @else if (p.inventaire && p.inventaire.length > 0) {
+
+            <!-- Liste des médicaments -->
+            <div class="list-group list-group-flush">
+              @for (ligne of p.inventaire; track ligne.id) {
+                <div class="list-group-item px-3 py-2">
+                  <div class="d-flex justify-content-between align-items-start gap-2">
+                    <div class="flex-grow-1">
+                      <div class="fw-semibold small">{{ ligne.medicament?.nom }}</div>
+                      @if (ligne.medicament?.forme || ligne.medicament?.dosage) {
+                        <div class="text-muted" style="font-size:.75rem">
+                          {{ ligne.medicament?.forme }} {{ ligne.medicament?.dosage }}
+                        </div>
+                      }
+                      @if (ligne.medicament?.surOrdonnance) {
+                        <span class="badge text-bg-warning" style="font-size:.65rem">Ordonnance</span>
+                      }
+                    </div>
+                    <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+                      @if (ligne.prixUnitaire != null) {
+                        <div class="fw-bold small mc-color-pharma">{{ ligne.prixUnitaire | number:'1.2-2' }} €</div>
+                      }
+                      <div class="text-muted" style="font-size:.72rem">{{ ligne.quantite }} en stock</div>
+                      @if (auth.role() === 'patient' || auth.role() === 'admin') {
+                        <button type="button" class="btn btn-sm mc-btn-pharma" style="font-size:.72rem;padding:.2rem .6rem"
+                                (click)="ouvrirReservation(ligne)">
+                          <i class="bi bi-cart-plus me-1"></i>Réserver
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+          } @else {
+            <div class="p-3 text-muted small">Aucun médicament renseigné.</div>
+          }
+
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>

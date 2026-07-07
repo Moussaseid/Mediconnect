@@ -1,0 +1,66 @@
+<div class="container mt-4">
+  <h2>Gestion des créneaux de disponibilité</h2>
+
+  <form [formGroup]="form" (ngSubmit)="ajouterHoraire()" class="card p-3 mb-4">
+    <div class="row">
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Jour</label>
+        <select class="form-control" formControlName="jourSemaine">
+          <option *ngFor="let jour of jours" [ngValue]="jour.value">
+            {{ jour.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Heure début</label>
+        <input type="time" class="form-control" formControlName="heureDebut">
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Heure fin</label>
+        <input type="time" class="form-control" formControlName="heureFin">
+      </div>
+
+      <div class="col-md-3 mb-3">
+        <label class="form-label">Durée RDV</label>
+        <input type="number" class="form-control" formControlName="dureeRdv" min="10">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" [disabled]="form.invalid">
+      Ajouter le créneau
+    </button>
+  </form>
+
+  <table class="table table-striped" *ngIf="horaires().length > 0; else aucunHoraire">
+    <thead>
+      <tr>
+        <th>Jour</th>
+        <th>Début</th>
+        <th>Fin</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let horaire of horaires()">
+        <td>{{ libelleJour(horaire.jourSemaine) }}</td>
+        <td>{{ horaire.heureDebut }}</td>
+        <td>{{ horaire.heureFin }}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" (click)="supprimerHoraire(horaire.id)">
+            Supprimer
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #aucunHoraire>
+    <p>Aucun horaire défini.</p>
+  </ng-template>
+
+  <div class="alert alert-success mt-3" *ngIf="message()">{{ message() }}</div>
+  <div class="alert alert-danger mt-3" *ngIf="erreur()">{{ erreur() }}</div>
+</div>

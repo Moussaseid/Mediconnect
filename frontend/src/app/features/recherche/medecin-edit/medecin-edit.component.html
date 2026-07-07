@@ -1,0 +1,203 @@
+<div class="container-lg py-4 px-3" style="max-width:760px">
+
+  <button type="button" class="mc-back-link" (click)="retour()">
+    <i class="bi bi-arrow-left"></i>Retour
+  </button>
+
+  @if (chargement()) {
+    <div class="mc-card p-4 mb-4">
+      <div class="mc-skeleton mb-3" style="height:1.3rem;width:40%"></div>
+      @for (i of [1,2,3,4]; track i) {
+        <div class="mb-3">
+          <div class="mc-skeleton mb-1" style="height:.75rem;width:25%"></div>
+          <div class="mc-skeleton" style="height:2.25rem;width:100%"></div>
+        </div>
+      }
+    </div>
+    <div class="mc-card p-4">
+      <div class="mc-skeleton mb-3" style="height:1.3rem;width:50%"></div>
+      @for (i of [1,2,3]; track i) {
+        <div class="mc-skeleton mb-3" style="height:3rem;width:100%"></div>
+      }
+    </div>
+  }
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (medecin(); as m) {
+    <!-- En-tête -->
+    <div class="mc-card p-4 mb-4 d-flex align-items-center gap-3">
+      <div class="mc-avatar mc-avatar--lg">{{ m.prenom.charAt(0) }}{{ m.nom.charAt(0) }}</div>
+      <div>
+        <h1 class="mc-section-title mb-1">Dr {{ m.prenom }} {{ m.nom }}</h1>
+        <p class="text-muted small mb-0">Modification du profil professionnel</p>
+      </div>
+    </div>
+
+    <!-- Informations générales -->
+    <div class="mc-card p-4 mb-4">
+
+      @if (succes()) {
+        <div class="alert alert-success d-flex align-items-center gap-2">
+          <i class="bi bi-check-circle-fill"></i>{{ succes() }}
+        </div>
+      }
+
+      <!-- Spécialité (fixée) -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold small">Spécialité</label>
+        <div>
+          <span class="mc-badge-spe">{{ m.specialisationLibelle ?? '— Non renseignée —' }}</span>
+        </div>
+        <div class="form-text">La spécialité est fixée lors de la validation du compte et n'est pas modifiable ici.</div>
+      </div>
+
+      <!-- Téléphone -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold small">Téléphone du cabinet</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+          <input type="tel" class="form-control" [(ngModel)]="form.telephone"
+                 placeholder="01 23 45 67 89">
+        </div>
+      </div>
+
+      <!-- Adresse cabinet (autocomplétion → coordonnées dérivées automatiquement) -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold small">Adresse du cabinet</label>
+        <app-adresse-autocomplete
+          [valeur]="form.adresseCabinet"
+          placeholder="12 rue de la Paix, 75001 Paris"
+          (adresseSelectionnee)="onAdresseSelectionnee($event)"
+        />
+        <div class="form-text">
+          Les coordonnées géographiques sont déterminées automatiquement à partir de l'adresse choisie.
+        </div>
+      </div>
+
+      <!-- Durée RDV -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold small">Durée de consultation (minutes)</label>
+        <div class="input-group" style="max-width:180px">
+          <span class="input-group-text"><i class="bi bi-clock"></i></span>
+          <input type="number" class="form-control" [(ngModel)]="form.dureeRdv"
+                 min="5" max="120" step="5">
+        </div>
+        <div class="form-text">Minimum 5 minutes.</div>
+      </div>
+
+      <!-- Actions -->
+      <div class="d-flex gap-2 pt-2 border-top">
+        <button type="button" class="btn btn-primary flex-grow-1"
+                (click)="sauvegarder()" [disabled]="sauvegarde()">
+          @if (sauvegarde()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Sauvegarde…
+          } @else {
+            <i class="bi bi-check-lg me-2"></i>Enregistrer les modifications
+          }
+        </button>
+        <a [routerLink]="['/recherche/medecin', m.id]" class="btn btn-outline-secondary">
+          Annuler
+        </a>
+      </div>
+    </div>
+
+    <!-- Horaires hebdomadaires -->
+    <div class="mc-card overflow-hidden mb-4">
+      <div class="mc-card-header"><i class="bi bi-calendar-week me-2"></i>Horaires hebdomadaires</div>
+      <div class="p-4">
+
+        @if (horairesErreur()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>{{ horairesErreur() }}
+          </div>
+        }
+        @if (horairesSucces()) {
+          <div class="alert alert-success d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill"></i>{{ horairesSucces() }}
+          </div>
+        }
+
+        @for (j of jours(); track j.jourSemaine) {
+          <div class="d-flex align-items-center gap-3 py-2 border-bottom flex-wrap">
+            <div class="form-check" style="min-width:140px">
+              <input class="form-check-input" type="checkbox" [(ngModel)]="j.actif" [id]="'jour-' + j.jourSemaine">
+              <label class="form-check-label fw-semibold small" [for]="'jour-' + j.jourSemaine">{{ j.nom }}</label>
+            </div>
+            <input type="time" class="form-control form-control-sm" style="max-width:130px"
+                   [(ngModel)]="j.heureDebut" [disabled]="!j.actif">
+            <span class="text-muted small">à</span>
+            <input type="time" class="form-control form-control-sm" style="max-width:130px"
+                   [(ngModel)]="j.heureFin" [disabled]="!j.actif">
+          </div>
+        }
+
+        <button type="button" class="btn btn-primary btn-sm mt-3"
+                (click)="sauvegarderHoraires()" [disabled]="horairesSauvegarde()">
+          @if (horairesSauvegarde()) {
+            <span class="spinner-border spinner-border-sm me-2"></span>Sauvegarde…
+          } @else {
+            <i class="bi bi-check-lg me-2"></i>Enregistrer les horaires
+          }
+        </button>
+      </div>
+    </div>
+
+    <!-- Indisponibilités -->
+    <div class="mc-card overflow-hidden mb-4">
+      <div class="mc-card-header"><i class="bi bi-calendar-x me-2"></i>Indisponibilités</div>
+      <div class="p-4">
+
+        @if (indispoErreur()) {
+          <div class="alert alert-danger d-flex align-items-center gap-2">
+            <i class="bi bi-exclamation-triangle-fill"></i>{{ indispoErreur() }}
+          </div>
+        }
+
+        @if (indisponibilites().length > 0) {
+          <div class="list-group list-group-flush mb-3">
+            @for (i of indisponibilites(); track i.id) {
+              <div class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold small">
+                    {{ i.dateDebut | date:'dd/MM/yyyy HH:mm' }} → {{ i.dateFin | date:'dd/MM/yyyy HH:mm' }}
+                  </div>
+                  @if (i.motif) { <div class="text-muted" style="font-size:.78rem">{{ i.motif }}</div> }
+                </div>
+                <button type="button" class="btn btn-outline-danger btn-sm" (click)="supprimerIndisponibilite(i.id)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="text-muted small">Aucune indisponibilité enregistrée.</p>
+        }
+
+        <div class="row g-2 align-items-end pt-2 border-top">
+          <div class="col-sm-4">
+            <label class="form-label small fw-semibold mb-1">Du</label>
+            <input type="datetime-local" class="form-control form-control-sm" [(ngModel)]="nouvelleIndispo.dateDebut">
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label small fw-semibold mb-1">Au</label>
+            <input type="datetime-local" class="form-control form-control-sm" [(ngModel)]="nouvelleIndispo.dateFin">
+          </div>
+          <div class="col-sm-4">
+            <label class="form-label small fw-semibold mb-1">Motif (optionnel)</label>
+            <input type="text" class="form-control form-control-sm" [(ngModel)]="nouvelleIndispo.motif" placeholder="Congés…">
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-primary btn-sm mt-3"
+                (click)="ajouterIndisponibilite()" [disabled]="indispoSauvegarde()">
+          <i class="bi bi-plus-lg me-1"></i>Ajouter
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

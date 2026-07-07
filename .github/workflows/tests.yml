@@ -1,0 +1,114 @@
+name: Tests
+
+on:
+  push:
+    branches: [develop, main, 'feature/**', 'fix/**']
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  # ── Lint + syntaxe PHP ────────────────────────────────────────────────────
+  php-lint:
+    name: PHP syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.2' }
+      - name: Check PHP syntax
+        run: find src config public routes.php -name '*.php' -print0 | xargs -0 -n1 php -l
+
+  # ── Tests PHP (PHPUnit) ───────────────────────────────────────────────────
+  php-tests:
+    name: PHPUnit
+    runs-on: ubuntu-latest
+    needs: php-lint
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: mediconnect_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_mysql, json, mbstring
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-
+
+      - run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Create .env pour tests
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_NAME=.*/DB_NAME=mediconnect_test/'  .env
+          sed -i 's/DB_PASS=.*/DB_PASS=root/'              .env
+          sed -i 's/JWT_SECRET=.*/JWT_SECRET=ci_secret_test_32chars_minimum_xyz/' .env
+
+      - name: Migrations + seeds
+        run: |
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/schema.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_fondations.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_gestion_rdv.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_sprint1.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_rename_columns.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_sprint2.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_centres_sante_analyse.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_patient.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/migration_pharmacien.sql
+          mysql -h 127.0.0.1 -u root -proot mediconnect_test < database/seed.sql
+
+      - name: Run PHPUnit
+        run: vendor/bin/phpunit --colors=always
+        env:
+          TEST_DB_HOST: 127.0.0.1
+          TEST_DB_NAME: mediconnect_test
+          TEST_DB_USER: root
+          TEST_DB_PASS: root
+
+  # ── Audit sécurité Composer ───────────────────────────────────────────────
+  php-audit:
+    name: Composer audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with: { php-version: '8.2' }
+      - run: composer install --no-interaction --prefer-dist --no-scripts
+      - name: Security audit (non-bloquant)
+        run: composer audit --no-dev || true
+
+  # ── TypeScript check Angular ──────────────────────────────────────────────
+  angular-typecheck:
+    name: Angular tsc --noEmit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      - working-directory: frontend
+        run: npm ci --legacy-peer-deps
+      - name: TypeScript strict check
+        working-directory: frontend
+        run: npx tsc --noEmit
+      - name: npm audit (high severity)
+        working-directory: frontend
+        run: npm audit --audit-level=high || true

@@ -1,0 +1,124 @@
+<div class="container-lg py-4 px-3">
+
+  <!-- En-tête -->
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Historique</h1>
+      <p class="mc-page-subtitle">Tous vos rendez-vous passés et annulés</p>
+    </div>
+    <a routerLink="/recherche" class="btn btn-primary btn-sm">
+      <i class="bi bi-search me-1"></i>Nouveau rendez-vous
+    </a>
+  </div>
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  <!-- Skeleton de chargement -->
+  @if (chargement()) {
+    <div class="mc-card overflow-hidden">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="px-3 py-3 border-bottom">
+          <div class="d-flex align-items-center gap-3">
+            <div class="mc-skeleton" style="width:40px;height:40px;border-radius:50%;flex-shrink:0"></div>
+            <div class="flex-grow-1">
+              <div class="mc-skeleton mb-2" style="height:.85rem;width:12rem"></div>
+              <div class="mc-skeleton" style="height:.7rem;width:8rem"></div>
+            </div>
+            <div class="mc-skeleton" style="height:1.8rem;width:5rem;flex-shrink:0"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Liste des rendez-vous passés -->
+  @if (!chargement() && !erreur()) {
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <span class="badge bg-secondary px-3 py-2">
+        {{ passes().length }} rendez-vous
+      </span>
+    </div>
+
+    <div class="mc-card overflow-hidden">
+
+      @if (passes().length === 0) {
+        <div class="mc-empty py-5">
+          <i class="bi bi-calendar-check"></i>
+          <p>Aucun rendez-vous passé pour le moment.</p>
+          <a routerLink="/recherche" class="btn btn-primary btn-sm mt-2">
+            <i class="bi bi-search me-1"></i>Prendre un rendez-vous
+          </a>
+        </div>
+      } @else {
+        <div class="list-group list-group-flush">
+          @for (rdv of passes(); track rdv.id) {
+            <div class="list-group-item px-3 py-3">
+              <div class="d-flex align-items-center gap-3">
+
+                <!-- Avatar -->
+                <div class="mc-avatar flex-shrink-0"
+                     style="width:42px;height:42px;font-size:.9rem;opacity:.75">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+
+                <!-- Infos -->
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <span class="fw-semibold" style="font-size:.9rem">
+                      Dr {{ rdv.medecin?.prenom }} {{ rdv.medecin?.nom }}
+                    </span>
+                    @if (rdv.medecin?.specialisationLibelle) {
+                      <span class="mc-badge-spe mc-badge-spe--medecin" style="font-size:.7rem">
+                        {{ rdv.medecin!.specialisationLibelle }}
+                      </span>
+                    }
+                    @if (rdv.statut === 'annule') {
+                      <span class="badge text-bg-danger" style="font-size:.7rem">
+                        Annulé@if (rdv.annulePar) { · {{ rdv.annulePar }}}
+                      </span>
+                    } @else {
+                      <span class="badge" style="font-size:.7rem;background:var(--mc-primary)">Effectué</span>
+                    }
+                  </div>
+                  <div class="d-flex flex-wrap gap-3" style="font-size:.78rem;color:var(--mc-muted)">
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ rdv.dateHeure | date:'EEE d MMM yyyy':'':'fr' }}</span>
+                    <span><i class="bi bi-clock me-1"></i>{{ rdv.dateHeure | date:'HH:mm':'':'fr' }}</span>
+                    @if (rdv.medecin?.adresseCabinet) {
+                      <span class="d-none d-sm-inline">
+                        <i class="bi bi-geo-alt me-1"></i>{{ rdv.medecin!.adresseCabinet }}
+                      </span>
+                    }
+                  </div>
+                  @if (rdv.motifAnnulation) {
+                    <div class="mt-1" style="font-size:.75rem;color:#dc2626">
+                      <i class="bi bi-chat-left-text me-1"></i>{{ rdv.motifAnnulation }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Action -->
+                <div class="flex-shrink-0">
+                  <a [routerLink]="['/recherche/medecin', rdv.medecinId]"
+                     class="btn btn-outline-primary btn-sm"
+                     style="font-size:.75rem;padding:.3rem .65rem"
+                     title="Voir la fiche et reprendre un rendez-vous">
+                    <i class="bi bi-arrow-repeat me-1"></i>
+                    <span class="d-none d-sm-inline">Reprendre</span>
+                  </a>
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+</div>

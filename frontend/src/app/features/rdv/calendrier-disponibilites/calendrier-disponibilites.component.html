@@ -1,0 +1,35 @@
+<div class="container mt-4">
+  <h2>Disponibilités du médecin</h2>
+
+  <div class="alert alert-danger" *ngIf="erreur()">{{ erreur() }}</div>
+
+  <div class="row">
+    <div class="col" *ngFor="let jour of jours()">
+      <div class="card h-100">
+        <div class="card-header text-center">
+          {{ jour.label }}
+        </div>
+
+        <div class="card-body">
+          <div
+            *ngFor="let creneau of jour.creneaux"
+            class="mb-2 p-2 rounded text-center"
+            [ngClass]="creneau.disponible ? 'bg-success text-white' : 'bg-secondary text-white'">
+            {{ creneau.heureDebut }} - {{ creneau.heureFin }}
+
+            <div *ngIf="creneau.disponible">
+              <a
+                class="btn btn-light btn-sm mt-1"
+                [routerLink]="['/patient/rdv/prendre', medecinId]"
+                [queryParams]="{ date: jour.date, heure: creneau.heureDebut }">
+                Réserver
+              </a>
+            </div>
+          </div>
+
+          <p *ngIf="jour.creneaux.length === 0">Aucun créneau</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,11 @@
+﻿action,count
+valider_demande_medecin,23
+rejeter_demande_medecin,7
+modifier_utilisateur,31
+suspendre_utilisateur,5
+creer_pharmacie,12
+modifier_pharmacie,18
+supprimer_pharmacie,2
+creer_centre_sante,8
+modifier_centre_analyse,14
+export_donnees,9

@@ -1,0 +1,189 @@
+<div class="container-lg py-4 px-3">
+
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Tableau de bord</h1>
+      <p class="mc-page-subtitle">
+        Bienvenue Dr {{ auth.user()?.prenom }} {{ auth.user()?.nom }}
+      </p>
+    </div>
+    <div class="mc-view-toggle btn-group btn-group-sm" role="group">
+      <button type="button" class="btn"
+        [class.btn-primary]="periode() === 'jour'"
+        [class.btn-outline-secondary]="periode() !== 'jour'"
+        (click)="changerPeriode('jour')">
+        Jour
+      </button>
+      <button type="button" class="btn"
+        [class.btn-primary]="periode() === 'semaine'"
+        [class.btn-outline-secondary]="periode() !== 'semaine'"
+        (click)="changerPeriode('semaine')">
+        Semaine
+      </button>
+    </div>
+  </div>
+
+  @if (chargement()) {
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+          @for (i of [1,2,3]; track i) {
+            <div class="px-3 py-3 border-bottom">
+              <div class="mc-skeleton mb-1" style="height:.85rem;width:55%"></div>
+              <div class="mc-skeleton" style="height:.7rem;width:35%"></div>
+            </div>
+          }
+        </div>
+        <div class="mc-card overflow-hidden">
+          <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+          @for (i of [1,2]; track i) {
+            <div class="px-3 py-3 border-bottom">
+              <div class="mc-skeleton mb-1" style="height:.85rem;width:50%"></div>
+              <div class="mc-skeleton" style="height:.7rem;width:30%"></div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="col-lg-4">
+        @for (i of [1,2,3]; track i) {
+          <div class="mc-card p-3 mb-3 text-center">
+            <div class="mc-skeleton mx-auto mb-2" style="height:1.8rem;width:3rem"></div>
+            <div class="mc-skeleton mx-auto" style="height:.7rem;width:5rem"></div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (!chargement() && medecin(); as m) {
+    <div class="row g-4">
+
+      <!-- Colonne rendez-vous -->
+      <div class="col-lg-8">
+
+        <!-- En cours -->
+        @if (groupes().enCours.length > 0) {
+          <div class="mc-card overflow-hidden mb-4">
+            <div class="mc-card-header d-flex align-items-center gap-2">
+              <i class="bi bi-play-circle-fill text-success"></i>En cours
+            </div>
+            <div class="list-group list-group-flush">
+              @for (r of groupes().enCours; track r.id) {
+                <div class="list-group-item px-3 py-2">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="fw-semibold small">{{ r.patient?.prenom }} {{ r.patient?.nom }}</div>
+                      <div class="text-muted" style="font-size:.78rem">{{ r.dateHeure | date:'HH:mm' }}</div>
+                    </div>
+                    <span class="badge text-bg-success">En cours</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- À venir -->
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-card-header d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-event"></i>À venir
+          </div>
+          @if (groupes().aVenir.length > 0) {
+            <div class="list-group list-group-flush">
+              @for (r of groupes().aVenir; track r.id) {
+                <div class="list-group-item px-3 py-2">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="fw-semibold small">{{ r.patient?.prenom }} {{ r.patient?.nom }}</div>
+                      <div class="text-muted" style="font-size:.78rem">
+                        {{ r.dateHeure | date:'EEEE d MMM, HH:mm' }}
+                      </div>
+                    </div>
+                    <span class="badge text-bg-primary">Confirmé</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="p-3 text-muted small">Aucun rendez-vous à venir pour cette période.</div>
+          }
+        </div>
+
+        <!-- Passés -->
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-card-header d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history"></i>Passés
+          </div>
+          @if (groupes().passes.length > 0) {
+            <div class="list-group list-group-flush">
+              @for (r of groupes().passes; track r.id) {
+                <div class="list-group-item px-3 py-2">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="fw-semibold small">{{ r.patient?.prenom }} {{ r.patient?.nom }}</div>
+                      <div class="text-muted" style="font-size:.78rem">
+                        {{ r.dateHeure | date:'EEEE d MMM, HH:mm' }}
+                      </div>
+                    </div>
+                    @if (r.statut === 'annule') {
+                      <span class="badge text-bg-danger">Annulé</span>
+                    } @else {
+                      <span class="badge text-bg-secondary">Terminé</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="p-3 text-muted small">Aucun rendez-vous passé pour cette période.</div>
+          }
+        </div>
+      </div>
+
+      <!-- Colonne liens rapides -->
+      <div class="col-lg-4">
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-card-header"><i class="bi bi-person-circle me-2"></i>Mon profil</div>
+          <div class="p-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="mc-avatar">{{ m.prenom.charAt(0) }}{{ m.nom.charAt(0) }}</div>
+              <div>
+                <div class="fw-bold">Dr {{ m.prenom }} {{ m.nom }}</div>
+                <span class="mc-badge-spe">{{ m.specialisationLibelle }}</span>
+              </div>
+            </div>
+            <a [routerLink]="['/recherche/medecin', m.id, 'modifier']" class="btn btn-outline-primary btn-sm w-100 mb-2">
+              <i class="bi bi-pencil-square me-1"></i>Modifier mon profil
+            </a>
+            <a [routerLink]="['/recherche/medecin', m.id]" class="btn btn-outline-secondary btn-sm w-100">
+              <i class="bi bi-eye me-1"></i>Voir ma fiche publique
+            </a>
+          </div>
+        </div>
+
+        <div class="mc-card overflow-hidden">
+          <div class="mc-card-header"><i class="bi bi-compass me-2"></i>Liens rapides</div>
+          <div class="list-group list-group-flush">
+            <a routerLink="/recherche" class="list-group-item list-group-item-action">
+              <i class="bi bi-search me-2"></i>Rechercher un médecin
+            </a>
+            <a routerLink="/recherche/pharmacies" class="list-group-item list-group-item-action">
+              <i class="bi bi-bag-heart me-2"></i>Pharmacies
+            </a>
+            <a routerLink="/recherche/centres" class="list-group-item list-group-item-action">
+              <i class="bi bi-hospital me-2"></i>Centres de santé &amp; analyse
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

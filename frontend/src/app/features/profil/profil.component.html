@@ -1,0 +1,135 @@
+<!-- src/app/features/profil/profil.component.html -->
+<div class="min-vh-100 bg-light py-5">
+  <div class="container" style="max-width:640px">
+
+    <!-- Breadcrumb / retour -->
+    <div class="mb-4">
+      <button class="btn btn-link p-0 text-muted text-decoration-none" (click)="retourDashboard()">
+        <i class="bi bi-arrow-left me-1"></i>Retour au tableau de bord
+      </button>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+
+        <!-- En-tête profil -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+          <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+               style="width:64px;height:64px">
+            <i class="bi bi-person-fill text-primary fs-2"></i>
+          </div>
+          <div>
+            <h2 class="h5 fw-bold mb-0">{{ auth.user()?.prenom }} {{ auth.user()?.nom }}</h2>
+            <span class="badge bg-primary bg-opacity-10 text-primary">{{ auth.user()?.role }}</span>
+          </div>
+        </div>
+
+        <hr>
+
+        <!-- Informations non modifiables -->
+        <div class="mb-4">
+          <h6 class="text-muted text-uppercase fw-semibold small mb-2">Informations de connexion</h6>
+          <div class="bg-light rounded p-3">
+            <div class="row g-2 align-items-center">
+              <div class="col-auto text-muted"><i class="bi bi-envelope"></i></div>
+              <div class="col"><strong>{{ auth.user()?.email }}</strong></div>
+            </div>
+          </div>
+          <p class="text-muted small mt-1 mb-0">
+            <i class="bi bi-lock-fill me-1"></i>
+            L'adresse email ne peut pas être modifiée ici.
+          </p>
+        </div>
+
+        <!-- Formulaire de modification -->
+        <h6 class="text-muted text-uppercase fw-semibold small mb-3">Modifier mon profil</h6>
+
+        @if (sauvegarde()) {
+          <div class="alert alert-success py-2">
+            <i class="bi bi-check-circle me-1"></i>Profil mis à jour avec succès.
+          </div>
+        }
+
+        @if (erreur()) {
+          <div class="alert alert-danger py-2">{{ erreur() }}</div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label fw-semibold">Nom</label>
+              <input type="text" class="form-control"
+                [class.is-invalid]="nom.invalid && nom.touched"
+                formControlName="nom" autocomplete="family-name" />
+              @if (nom.invalid && nom.touched) {
+                <div class="invalid-feedback">2 caractères minimum.</div>
+              }
+            </div>
+            <div class="col-6">
+              <label class="form-label fw-semibold">Prénom</label>
+              <input type="text" class="form-control"
+                [class.is-invalid]="prenom.invalid && prenom.touched"
+                formControlName="prenom" autocomplete="given-name" />
+              @if (prenom.invalid && prenom.touched) {
+                <div class="invalid-feedback">2 caractères minimum.</div>
+              }
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Téléphone <span class="text-muted fw-normal">(optionnel)</span>
+            </label>
+            <input type="tel" class="form-control"
+              formControlName="telephone" autocomplete="tel" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Adresse <span class="text-muted fw-normal">(optionnel)</span>
+            </label>
+            <input type="text" class="form-control"
+              formControlName="adresse" autocomplete="street-address" />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">
+              Ville <span class="text-muted fw-normal">(optionnel)</span>
+            </label>
+            <input type="text" class="form-control"
+              formControlName="ville" autocomplete="address-level2" />
+          </div>
+
+          <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-primary px-4" [disabled]="loading()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm me-2"></span>Enregistrement...
+              } @else {
+                <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+              }
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="card shadow-sm mt-3 border-danger border-opacity-25">
+      <div class="card-body p-4">
+        <h6 class="text-danger fw-semibold mb-1">
+          <i class="bi bi-exclamation-triangle me-1"></i>Zone sensible
+        </h6>
+        <p class="text-muted small mb-3">
+          La déconnexion invalidera votre session sur tous les appareils.
+        </p>
+        <button class="btn btn-outline-danger btn-sm" (click)="auth.logout()">
+          <i class="bi bi-box-arrow-right me-1"></i>Se déconnecter
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

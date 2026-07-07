@@ -1,0 +1,127 @@
+<div class="container-lg py-4 px-3">
+
+  <!-- Sous-navigation -->
+  <nav class="mc-sub-nav">
+    <a routerLink="/recherche" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+      <i class="bi bi-person-heart"></i>Médecins
+    </a>
+    <a routerLink="/recherche/pharmacies" routerLinkActive="active">
+      <i class="bi bi-bag-heart"></i>Pharmacies
+    </a>
+    <a routerLink="/recherche/centres" routerLinkActive="active">
+      <i class="bi bi-hospital"></i>Centres
+    </a>
+  </nav>
+
+  <!-- En-tête -->
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Trouver un médecin</h1>
+      <p class="mc-page-subtitle">Recherchez par spécialité, proximité ou nom</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="mc-view-toggle btn-group btn-group-sm" role="group">
+        <button type="button" class="btn"
+          [class.btn-primary]="!vueCarte()"
+          [class.btn-outline-secondary]="vueCarte()"
+          (click)="vueCarte.set(false)">
+          <i class="bi bi-grid-3x3-gap me-1"></i>Liste
+        </button>
+        <button type="button" class="btn"
+          [class.btn-primary]="vueCarte()"
+          [class.btn-outline-secondary]="!vueCarte()"
+          (click)="vueCarte.set(true)">
+          <i class="bi bi-map me-1"></i>Carte
+        </button>
+      </div>
+      <button class="btn btn-outline-primary btn-sm" (click)="geoLocaliser()" type="button">
+        <i class="bi bi-crosshair me-1"></i>Me localiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="mc-card p-3 mb-4">
+    <app-filtre
+      [valeurs]="filtres()"
+      [specialites]="specialites()"
+      [valeurAdresse]="adresseAffichee()"
+      (filtresChange)="onFiltresChange($event)"
+    />
+  </div>
+
+  <!-- Alerte géoloc -->
+  @if (filtres().lat != null) {
+    <div class="d-flex align-items-center gap-2 mb-3 p-2 px-3 rounded-2"
+         style="background:var(--mc-teal-lt);color:var(--mc-teal);font-size:.82rem">
+      <i class="bi bi-geo-alt-fill flex-shrink-0"></i>
+      Rayon de <strong class="ms-1 me-1">{{ filtres().rayon }} km</strong> autour de la position recherchée
+    </div>
+  }
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="col">
+          <div class="mc-card p-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="mc-skeleton flex-shrink-0" style="width:44px;height:44px;border-radius:50%"></div>
+              <div class="flex-grow-1">
+                <div class="mc-skeleton mb-2" style="height:.85rem;width:65%"></div>
+                <div class="mc-skeleton" style="height:.7rem;width:40%"></div>
+              </div>
+            </div>
+            <div class="mc-skeleton mb-2" style="height:.7rem;width:80%"></div>
+            <div class="mc-skeleton mt-3" style="height:2rem;width:100%"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!chargement()) {
+    @if (vueCarte()) {
+      <app-carte
+        [medecins]="medecins()"
+        [positionUtilisateur]="positionUtilisateur()"
+        [rayonKm]="filtres().lat != null ? (filtres().rayon ?? null) : null"
+        [adresseUtilisateur]="adresseAffichee()"
+        class="d-block mb-4"
+      />
+      @if (medecins().length === 0) {
+        <p class="text-muted small text-center mt-2">
+          <i class="bi bi-person-x me-1"></i>Aucun médecin trouvé dans ce rayon.
+        </p>
+      } @else {
+        <p class="text-muted small mb-0">
+          <strong class="text-body">{{ total() }}</strong> médecin{{ total() > 1 ? 's' : '' }} trouvé{{ total() > 1 ? 's' : '' }}
+        </p>
+      }
+    } @else {
+      @if (medecins().length === 0) {
+        <div class="mc-empty">
+          <i class="bi bi-person-x"></i>
+          <p>Aucun médecin trouvé pour ces critères.</p>
+        </div>
+      } @else {
+        <p class="text-muted small mb-3">
+          <strong class="text-body">{{ total() }}</strong> médecin{{ total() > 1 ? 's' : '' }} trouvé{{ total() > 1 ? 's' : '' }}
+        </p>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
+          @for (m of medecins(); track m.id) {
+            <div class="col">
+              <app-medecin-card [medecin]="m" />
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
+</div>

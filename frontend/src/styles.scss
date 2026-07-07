@@ -1,0 +1,24 @@
+// @use rules MUST come first in SCSS
+@use 'bootstrap/scss/bootstrap';
+@use '@angular/material' as mat;
+
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// Angular Material theme (M3, coexiste avec Bootstrap)
+@include mat.core();
+
+$theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+  ),
+));
+
+html {
+  @include mat.all-component-themes($theme);
+}
+
+// Reset léger pour que mat-table hérite de la font Bootstrap
+.mat-mdc-table {
+  font-family: inherit;
+}

@@ -1,0 +1,149 @@
+<div class="container-lg py-4 px-3" style="max-width:720px">
+
+  <!-- En-tête -->
+  <button type="button" class="mc-back-link" (click)="retour()">
+    <i class="bi bi-arrow-left"></i>Retour
+  </button>
+
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Mon profil</h1>
+      <p class="mc-page-subtitle">Modifiez vos informations personnelles</p>
+    </div>
+    <!-- Avatar initiales -->
+    <div class="mc-avatar mc-avatar--lg">
+      {{ auth.user()?.prenom?.charAt(0) }}{{ auth.user()?.nom?.charAt(0) }}
+    </div>
+  </div>
+
+  @if (succes()) {
+    <div class="alert alert-success d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+      Profil mis à jour avec succès.
+    </div>
+  }
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+      <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>{{ erreur() }}
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="soumettre()" novalidate>
+
+    <!-- Informations de base -->
+    <div class="mc-card p-4 mb-4">
+      <div class="mc-card-header" style="margin:-1rem -1rem 1.25rem;border-radius:calc(var(--mc-radius) - 1px) calc(var(--mc-radius) - 1px) 0 0">
+        <i class="bi bi-person me-2"></i>Informations personnelles
+      </div>
+
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="prenom">Prénom</label>
+          <input id="prenom" type="text" formControlName="prenom"
+                 class="form-control" [class.is-invalid]="invalide('prenom')"
+                 placeholder="Votre prénom">
+          @if (invalide('prenom')) {
+            <div class="invalid-feedback">Le prénom est requis (max 100 caractères).</div>
+          }
+        </div>
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="nom">Nom</label>
+          <input id="nom" type="text" formControlName="nom"
+                 class="form-control" [class.is-invalid]="invalide('nom')"
+                 placeholder="Votre nom">
+          @if (invalide('nom')) {
+            <div class="invalid-feedback">Le nom est requis (max 100 caractères).</div>
+          }
+        </div>
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="email">
+            Email <span class="mc-form-label-opt">(non modifiable)</span>
+          </label>
+          <input id="email" type="email" class="form-control"
+                 [value]="auth.user()?.email ?? ''" disabled>
+        </div>
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="telephone">
+            Téléphone <span class="mc-form-label-opt">(facultatif)</span>
+          </label>
+          <input id="telephone" type="tel" formControlName="telephone"
+                 class="form-control" [class.is-invalid]="invalide('telephone')"
+                 placeholder="Ex : 06 12 34 56 78">
+          @if (invalide('telephone')) {
+            <div class="invalid-feedback">Téléphone trop long (max 20 caractères).</div>
+          }
+        </div>
+        <div class="col-12">
+          <label class="mc-form-label" for="adresse">
+            Adresse <span class="mc-form-label-opt">(facultatif)</span>
+          </label>
+          <input id="adresse" type="text" formControlName="adresse"
+                 class="form-control" [class.is-invalid]="invalide('adresse')"
+                 placeholder="Ex : 10 rue de la Paix">
+          @if (invalide('adresse')) {
+            <div class="invalid-feedback">Adresse trop longue (max 255 caractères).</div>
+          }
+        </div>
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="ville">
+            Ville <span class="mc-form-label-opt">(facultatif)</span>
+          </label>
+          <input id="ville" type="text" formControlName="ville"
+                 class="form-control" [class.is-invalid]="invalide('ville')"
+                 placeholder="Ex : Paris">
+          @if (invalide('ville')) {
+            <div class="invalid-feedback">Ville trop longue (max 100 caractères).</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Changement de mot de passe -->
+    <div class="mc-card p-4 mb-4">
+      <div class="mc-card-header" style="margin:-1rem -1rem 1.25rem;border-radius:calc(var(--mc-radius) - 1px) calc(var(--mc-radius) - 1px) 0 0">
+        <i class="bi bi-shield-lock me-2"></i>Changer de mot de passe
+        <span class="ms-2 fw-normal" style="opacity:.6;text-transform:none;letter-spacing:0;font-size:.8rem">
+          Laissez vide pour conserver le mot de passe actuel
+        </span>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="motDePasse">Nouveau mot de passe</label>
+          <input id="motDePasse" type="password" formControlName="motDePasse"
+                 class="form-control" [class.is-invalid]="invalide('motDePasse')"
+                 placeholder="Min. 8 caractères" autocomplete="new-password">
+          @if (invalide('motDePasse')) {
+            <div class="invalid-feedback">Au moins 8 caractères requis.</div>
+          }
+        </div>
+        <div class="col-sm-6">
+          <label class="mc-form-label" for="confirmation">Confirmer le mot de passe</label>
+          <input id="confirmation" type="password" formControlName="confirmation"
+                 class="form-control"
+                 [class.is-invalid]="form.hasError('confirmation') && champ('confirmation')?.touched"
+                 placeholder="Répétez le mot de passe" autocomplete="new-password">
+          @if (form.hasError('confirmation') && champ('confirmation')?.touched) {
+            <div class="invalid-feedback">Les mots de passe ne correspondent pas.</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-end gap-2">
+      <a routerLink="/patient/dashboard" class="btn btn-outline-secondary">
+        Annuler
+      </a>
+      <button type="submit" class="btn btn-primary" [disabled]="en_cours()">
+        @if (en_cours()) {
+          <span class="spinner-border spinner-border-sm me-1"></span>Enregistrement…
+        } @else {
+          <i class="bi bi-check2 me-1"></i>Enregistrer les modifications
+        }
+      </button>
+    </div>
+
+  </form>
+</div>

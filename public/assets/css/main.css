@@ -1,0 +1,58 @@
+/* MediConnect — styles de base */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body { font-family: system-ui, sans-serif; color: #1a1a1a; background: #f5f7fa; line-height: 1.5; }
+
+/* Layout */
+.container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+
+/* Navbar */
+.navbar { display: flex; align-items: center; justify-content: space-between; padding: .75rem 1.5rem; background: #1d6fa4; color: #fff; }
+.navbar__brand { color: #fff; font-size: 1.25rem; font-weight: 700; text-decoration: none; }
+.navbar__links { list-style: none; display: flex; gap: 1rem; }
+.navbar__links a { color: #fff; text-decoration: none; }
+.navbar__links a:hover { text-decoration: underline; }
+
+/* Flash messages */
+.flash { padding: .75rem 1rem; border-radius: 4px; margin-bottom: 1.25rem; font-weight: 500; }
+.flash--success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.flash--error   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.flash--info    { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+
+/* Formulaires */
+.form-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 2rem; max-width: 500px; margin: 0 auto; }
+.form-card h1 { font-size: 1.5rem; margin-bottom: 1.5rem; }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: .875rem; font-weight: 600; margin-bottom: .25rem; }
+.form-group input, .form-group select { width: 100%; padding: .5rem .75rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 1rem; }
+.form-group input:focus { outline: none; border-color: #1d6fa4; box-shadow: 0 0 0 2px rgba(29,111,164,.2); }
+.field-error { color: #dc2626; font-size: .8rem; margin-top: .2rem; }
+.input-error { border-color: #dc2626 !important; }
+
+/* Boutons */
+.btn { display: inline-block; padding: .6rem 1.25rem; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; text-decoration: none; }
+.btn--primary { background: #1d6fa4; color: #fff; }
+.btn--primary:hover { background: #155e8a; }
+.btn--danger  { background: #dc2626; color: #fff; }
+.btn--danger:hover  { background: #b91c1c; }
+.btn--success { background: #059669; color: #fff; }
+.btn--success:hover { background: #047857; }
+.btn--full { width: 100%; text-align: center; }
+
+/* Tableau */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+th, td { padding: .75rem 1rem; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: .9rem; }
+th { background: #f1f5f9; font-weight: 600; }
+
+/* Pagination */
+.pagination { display: flex; gap: .5rem; margin-top: 1rem; justify-content: center; }
+.pagination a, .pagination span { padding: .4rem .75rem; border: 1px solid #cbd5e1; border-radius: 4px; text-decoration: none; color: #1d6fa4; }
+.pagination .current { background: #1d6fa4; color: #fff; border-color: #1d6fa4; }
+
+/* Page de confirmation */
+.confirmation-box { background: #fff; border-radius: 8px; padding: 2rem; max-width: 600px; margin: 0 auto; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+.confirmation-box h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #065f46; }
+
+/* Mot de passe temporaire admin */
+.tmp-password { background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px; padding: 1rem; font-family: monospace; font-size: 1.1rem; word-break: break-all; margin: 1rem 0; }

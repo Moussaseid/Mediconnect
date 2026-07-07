@@ -1,0 +1,48 @@
+<div class="mc-card h-100 p-3 d-flex flex-column gap-2">
+
+  <!-- En-tête -->
+  <div class="d-flex align-items-center gap-3">
+    <div class="mc-avatar">
+      {{ medecin.prenom.charAt(0) }}{{ medecin.nom.charAt(0) }}
+    </div>
+    <div class="overflow-hidden">
+      <div class="fw-bold text-truncate">Dr {{ medecin.prenom }} {{ medecin.nom }}</div>
+      <span class="mc-badge-spe">{{ medecin.specialisationLibelle ?? 'Spécialité #' + medecin.specialisation }}</span>
+    </div>
+  </div>
+
+  <!-- Infos -->
+  <div class="d-flex flex-column gap-1 mt-1">
+    @if (medecin.adresseCabinet) {
+      <div class="d-flex align-items-start gap-2 text-muted" style="font-size:.82rem">
+        <i class="bi bi-geo-alt mt-1 flex-shrink-0" style="color:var(--mc-teal)"></i>
+        <span>{{ medecin.adresseCabinet }}</span>
+      </div>
+    }
+    <div class="d-flex align-items-center gap-2 text-muted" style="font-size:.82rem">
+      <i class="bi bi-clock" style="color:var(--mc-primary)"></i>
+      <span>Consultation {{ medecin.dureeRdv }} min</span>
+    </div>
+    @if (medecin.distance != null) {
+      <div class="d-flex align-items-center gap-2 fw-semibold" style="font-size:.82rem;color:var(--mc-teal)">
+        <i class="bi bi-signpost-2"></i>
+        <span>{{ medecin.distance }} km</span>
+      </div>
+    }
+  </div>
+
+  <!-- CTA -->
+  <div class="mt-auto pt-1 d-flex gap-2">
+    <a [routerLink]="['/recherche/medecin', medecin.id]"
+       class="btn btn-primary btn-sm flex-grow-1">
+      Voir la fiche &rarr;
+    </a>
+    <!--
+    <button type="button" class="btn btn-outline-primary btn-sm"
+            (click)="rdvDemande.emit(medecin)" title="Demander un rendez-vous">
+      <i class="bi bi-calendar-plus"></i>
+    </button>
+    -->
+  </div>
+
+</div>

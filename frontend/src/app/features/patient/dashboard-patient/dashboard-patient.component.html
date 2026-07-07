@@ -1,0 +1,388 @@
+<div class="container-lg py-4 px-3">
+
+  <!-- En-tête -->
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Mes rendez-vous</h1>
+      <p class="mc-page-subtitle">
+        Bonjour <strong>{{ auth.user()?.prenom ?? auth.user()?.nom }}</strong>
+      </p>
+    </div>
+    <a routerLink="/recherche" class="btn btn-primary btn-sm">
+      <i class="bi bi-search me-1"></i>Prendre rendez-vous
+    </a>
+  </div>
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="row g-3 mb-4">
+      @for (i of [1,2,3]; track i) {
+        <div class="col-4">
+          <div class="mc-card p-3 text-center">
+            <div class="mc-skeleton mx-auto mb-2" style="height:1.8rem;width:3rem"></div>
+            <div class="mc-skeleton mx-auto" style="height:.7rem;width:4.5rem"></div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="mc-card overflow-hidden">
+      <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+      @for (i of [1,2,3,4]; track i) {
+        <div class="px-3 py-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="mc-skeleton mb-1" style="height:.85rem;width:10rem"></div>
+              <div class="mc-skeleton" style="height:.7rem;width:7rem"></div>
+            </div>
+            <div class="mc-skeleton" style="height:1.8rem;width:5rem"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!chargement() && !erreur()) {
+
+    <!-- Stats -->
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="mc-card p-3 text-center">
+          <div style="font-size:1.6rem;font-weight:800;color:#16a34a;line-height:1">
+            {{ aVenir().length }}
+          </div>
+          <div style="font-size:.75rem;color:var(--mc-muted);margin-top:.2rem">À venir</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="mc-card p-3 text-center">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--mc-muted);line-height:1">
+            {{ passes().length }}
+          </div>
+          <div style="font-size:.75rem;color:var(--mc-muted);margin-top:.2rem">Passés</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="mc-card p-3 text-center">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--mc-primary);line-height:1">
+            {{ rdvs().length }}
+          </div>
+          <div style="font-size:.75rem;color:var(--mc-muted);margin-top:.2rem">Total</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Colonne principale -->
+      <div class="col-lg-8">
+
+        <!-- À venir -->
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-card-header d-flex align-items-center gap-2">
+            <i class="bi bi-calendar-check" style="color:var(--mc-primary)"></i>À venir
+            @if (aVenir().length > 0) {
+              <span class="badge ms-auto" style="background:var(--mc-primary)">{{ aVenir().length }}</span>
+            }
+          </div>
+
+          @if (aVenir().length === 0) {
+            <div class="p-4 text-center">
+              <i class="bi bi-calendar-x d-block mb-2" style="font-size:1.8rem;color:var(--mc-border)"></i>
+              <p class="text-muted small mb-2">Aucun rendez-vous à venir.</p>
+              <a routerLink="/recherche" class="btn btn-primary btn-sm">
+                <i class="bi bi-search me-1"></i>Trouver un médecin
+              </a>
+            </div>
+          } @else {
+            <div class="list-group list-group-flush">
+              @for (rdv of aVenir(); track rdv.id) {
+                <div class="list-group-item px-3 py-3">
+                  <div class="d-flex align-items-center gap-3">
+
+                    <!-- Avatar -->
+                    <div class="mc-avatar flex-shrink-0" style="width:40px;height:40px;font-size:.85rem">
+                      <i class="bi bi-person-fill"></i>
+                    </div>
+
+                    <!-- Infos -->
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <span class="fw-semibold" style="font-size:.9rem">
+                          Dr {{ rdv.medecin?.prenom }} {{ rdv.medecin?.nom }}
+                        </span>
+                        @if (rdv.medecin?.specialisationLibelle) {
+                          <span class="mc-badge-spe" style="font-size:.7rem">{{ rdv.medecin!.specialisationLibelle }}</span>
+                        }
+                      </div>
+                      <div class="d-flex flex-wrap gap-3" style="font-size:.78rem;color:var(--mc-muted)">
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ rdv.dateHeure | date:'EEE d MMM yyyy':'':'fr' }}</span>
+                        <span><i class="bi bi-clock me-1"></i>{{ rdv.dateHeure | date:'HH:mm':'':'fr' }}</span>
+                        @if (rdv.medecin?.adresseCabinet) {
+                          <span class="d-none d-sm-inline">
+                            <i class="bi bi-geo-alt me-1"></i>{{ rdv.medecin!.adresseCabinet }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex flex-column gap-1 flex-shrink-0">
+                      <a [routerLink]="['/recherche/medecin', rdv.medecinId]"
+                         class="btn btn-outline-primary btn-sm" style="font-size:.75rem;padding:.2rem .55rem">
+                        <i class="bi bi-eye"></i>
+                      </a>
+                      <button class="btn btn-sm btn-outline-danger"
+                              style="font-size:.75rem;padding:.2rem .55rem"
+                              (click)="ouvrirAnnulation(rdv.id)"
+                              title="Annuler ce rendez-vous">
+                        <i class="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Passés & annulés -->
+        <div class="mc-card overflow-hidden">
+          <div class="mc-card-header d-flex align-items-center gap-2">
+            <i class="bi bi-clock-history"></i>Historique
+            @if (passes().length > 0) {
+              <span class="badge ms-auto bg-secondary">{{ passes().length }}</span>
+            }
+          </div>
+
+          @if (passes().length === 0) {
+            <div class="p-4 text-center">
+              <p class="text-muted small mb-0">Aucun rendez-vous passé pour le moment.</p>
+            </div>
+          } @else {
+            <div class="list-group list-group-flush">
+              @for (rdv of passes(); track rdv.id) {
+                <div class="list-group-item px-3 py-3" style="opacity:.8">
+                  <div class="d-flex align-items-center gap-3">
+
+                    <!-- Avatar -->
+                    <div class="mc-avatar flex-shrink-0"
+                         style="width:40px;height:40px;font-size:.85rem;background:var(--mc-surface)">
+                      <i class="bi bi-person-fill" style="color:var(--mc-muted)"></i>
+                    </div>
+
+                    <!-- Infos -->
+                    <div class="flex-grow-1 min-w-0">
+                      <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                        <span class="fw-semibold" style="font-size:.9rem">
+                          Dr {{ rdv.medecin?.prenom }} {{ rdv.medecin?.nom }}
+                        </span>
+                        @if (rdv.statut === 'annule') {
+                          <span class="badge text-bg-danger" style="font-size:.7rem">
+                            Annulé@if (rdv.annulePar) { · {{ rdv.annulePar }}}
+                          </span>
+                        } @else {
+                          <span class="badge text-bg-secondary" style="font-size:.7rem">Effectué</span>
+                        }
+                      </div>
+                      <div class="d-flex flex-wrap gap-3" style="font-size:.78rem;color:var(--mc-muted)">
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ rdv.dateHeure | date:'d MMM yyyy':'':'fr' }}</span>
+                        <span><i class="bi bi-clock me-1"></i>{{ rdv.dateHeure | date:'HH:mm':'':'fr' }}</span>
+                      </div>
+                      @if (rdv.motifAnnulation) {
+                        <div class="mt-1" style="font-size:.75rem;color:#dc2626">
+                          <i class="bi bi-chat-left-text me-1"></i>{{ rdv.motifAnnulation }}
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Action reprendre -->
+                    <div class="flex-shrink-0">
+                      <a [routerLink]="['/recherche/medecin', rdv.medecinId]"
+                         class="btn btn-outline-secondary btn-sm" style="font-size:.75rem;padding:.2rem .55rem"
+                         title="Revoir la fiche">
+                        <i class="bi bi-arrow-repeat"></i>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- Colonne latérale -->
+      <div class="col-lg-4">
+
+        <!-- Prochain RDV -->
+        @if (aVenir().length > 0) {
+          <div class="mc-card overflow-hidden">
+            <div class="mc-card-header">
+              <i class="bi bi-alarm me-2" style="color:var(--mc-primary)"></i>Prochain rendez-vous
+            </div>
+            <div class="p-3">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <div class="mc-avatar">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                  <div class="fw-bold" style="font-size:.9rem">
+                    Dr {{ aVenir()[0].medecin?.prenom }} {{ aVenir()[0].medecin?.nom }}
+                  </div>
+                  @if (aVenir()[0].medecin?.specialisationLibelle) {
+                    <span class="mc-badge-spe" style="font-size:.7rem">
+                      {{ aVenir()[0].medecin!.specialisationLibelle }}
+                    </span>
+                  }
+                </div>
+              </div>
+              <div class="mc-info-row" style="padding:.45rem 0">
+                <span class="mc-info-label"><i class="bi bi-calendar3 me-1"></i>Date</span>
+                <span class="mc-info-value" style="font-size:.82rem">
+                  {{ aVenir()[0].dateHeure | date:'d MMM yyyy':'':'fr' }}
+                </span>
+              </div>
+              <div class="mc-info-row" style="padding:.45rem 0">
+                <span class="mc-info-label"><i class="bi bi-clock me-1"></i>Heure</span>
+                <span class="mc-info-value" style="font-size:.82rem">
+                  {{ aVenir()[0].dateHeure | date:'HH:mm':'':'fr' }}
+                </span>
+              </div>
+              @if (aVenir()[0].medecin?.dureeRdv) {
+                <div class="mc-info-row" style="padding:.45rem 0">
+                  <span class="mc-info-label"><i class="bi bi-hourglass-split me-1"></i>Durée</span>
+                  <span class="mc-info-value" style="font-size:.82rem">{{ aVenir()[0].medecin!.dureeRdv }} min</span>
+                </div>
+              }
+              @if (aVenir()[0].medecin?.adresseCabinet) {
+                <div class="mc-info-row" style="padding:.45rem 0;border-bottom:none">
+                  <span class="mc-info-label"><i class="bi bi-geo-alt me-1"></i>Lieu</span>
+                  <span class="mc-info-value" style="font-size:.78rem;max-width:55%">
+                    {{ aVenir()[0].medecin!.adresseCabinet }}
+                  </span>
+                </div>
+              }
+              <a [routerLink]="['/recherche/medecin', aVenir()[0].medecinId]"
+                 class="btn btn-outline-primary btn-sm w-100 mt-3">
+                <i class="bi bi-person-lines-fill me-1"></i>Voir la fiche
+              </a>
+            </div>
+          </div>
+        }
+
+        <!-- Accès rapide -->
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-card-header"><i class="bi bi-compass me-2"></i>Accès rapide</div>
+          <div class="list-group list-group-flush">
+            <a routerLink="/recherche" class="list-group-item list-group-item-action d-flex align-items-center gap-2" style="font-size:.875rem">
+              <span class="mc-avatar" style="width:30px;height:30px;font-size:.75rem;flex-shrink:0">
+                <i class="bi bi-search"></i>
+              </span>
+              <div>
+                <div class="fw-semibold" style="font-size:.85rem">Trouver un médecin</div>
+                <div style="font-size:.75rem;color:var(--mc-muted)">Recherche par spécialité</div>
+              </div>
+            </a>
+            <a routerLink="/recherche/pharmacies" class="list-group-item list-group-item-action d-flex align-items-center gap-2" style="font-size:.875rem">
+              <span class="mc-avatar mc-avatar--pharma" style="width:30px;height:30px;font-size:.75rem;flex-shrink:0">
+                <i class="bi bi-bag-heart-fill"></i>
+              </span>
+              <div>
+                <div class="fw-semibold" style="font-size:.85rem">Pharmacies</div>
+                <div style="font-size:.75rem;color:var(--mc-muted)">Médicaments & disponibilités</div>
+              </div>
+            </a>
+            <a routerLink="/recherche/centres" class="list-group-item list-group-item-action d-flex align-items-center gap-2" style="font-size:.875rem">
+              <span class="mc-avatar mc-avatar--sante" style="width:30px;height:30px;font-size:.75rem;flex-shrink:0">
+                <i class="bi bi-hospital-fill"></i>
+              </span>
+              <div>
+                <div class="fw-semibold" style="font-size:.85rem">Centres de santé</div>
+                <div style="font-size:.75rem;color:var(--mc-muted)">Centres & laboratoires</div>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <!-- Profil -->
+        <div class="mc-card overflow-hidden mb-4">
+          <div class="mc-card-header"><i class="bi bi-person-circle me-2"></i>Mon compte</div>
+          <div class="p-3 d-flex align-items-center gap-3">
+            <div class="mc-avatar flex-shrink-0">
+              {{ auth.user()?.prenom?.charAt(0) }}{{ auth.user()?.nom?.charAt(0) }}
+            </div>
+            <div class="flex-grow-1 min-w-0">
+              <div class="fw-semibold" style="font-size:.9rem">
+                {{ auth.user()?.prenom }} {{ auth.user()?.nom }}
+              </div>
+              <div style="font-size:.78rem;color:var(--mc-muted)">{{ auth.user()?.email }}</div>
+            </div>
+          </div>
+          <div class="px-3 pb-3">
+            <a routerLink="/patient/profil" class="btn btn-outline-primary btn-sm w-100">
+              <i class="bi bi-pencil-square me-1"></i>Modifier mon profil
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- ── Modale d'annulation ───────────────────────────────────────────────────── -->
+@if (annulationId() !== null) {
+  <div class="modal d-block" tabindex="-1" style="background:rgba(15,23,42,.5)">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px">
+      <div class="modal-content" style="border:none;border-radius:var(--mc-radius);box-shadow:var(--mc-shadow-md)">
+        <div class="modal-header border-0 pb-1 pt-4 px-4">
+          <div class="d-flex align-items-center gap-2">
+            <div style="width:36px;height:36px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <i class="bi bi-x-circle-fill" style="color:#dc2626;font-size:1rem"></i>
+            </div>
+            <h5 class="modal-title fw-bold mb-0" style="font-size:1rem">Annuler ce rendez-vous</h5>
+          </div>
+          <button type="button" class="btn-close ms-auto" (click)="fermerAnnulation()"
+                  [disabled]="enCoursAnnulation()"></button>
+        </div>
+        <div class="modal-body px-4 py-3">
+          <p style="font-size:.85rem;color:var(--mc-muted);margin-bottom:1rem">
+            Cette action est définitive. Vous pouvez laisser un message au médecin.
+          </p>
+          <label class="mc-form-label">Motif <span class="mc-form-label-opt">(facultatif)</span></label>
+          <textarea class="form-control" rows="3"
+                    placeholder="Ex : imprévu personnel, indisponible ce jour…"
+                    [ngModel]="motifAnnulation()"
+                    (ngModelChange)="motifAnnulation.set($event)"
+                    [disabled]="enCoursAnnulation()"></textarea>
+          @if (erreurAnnulation()) {
+            <div class="alert alert-danger mt-3 mb-0 py-2 d-flex gap-2 align-items-center" style="font-size:.82rem">
+              <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>{{ erreurAnnulation() }}
+            </div>
+          }
+        </div>
+        <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm"
+                  (click)="fermerAnnulation()" [disabled]="enCoursAnnulation()">
+            Conserver le RDV
+          </button>
+          <button type="button" class="btn btn-danger btn-sm"
+                  (click)="confirmerAnnulation()" [disabled]="enCoursAnnulation()">
+            @if (enCoursAnnulation()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>Annulation…
+            } @else {
+              <i class="bi bi-x-circle me-1"></i>Confirmer l'annulation
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

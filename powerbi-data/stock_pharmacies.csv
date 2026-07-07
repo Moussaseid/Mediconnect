@@ -1,0 +1,13 @@
+pharmacie,nb_medicaments,valeur_stock,alertes_stock,alertes_peremption
+Pharmacie Centrale,16,3327.50,8,2
+Pharmacie Saint-Louis,14,3114.45,7,2
+Pharmacie du Marché,13,2600.20,7,2
+Pharmacie de l'Opéra,11,1927.70,5,0
+Grande Pharmacie de Lyon,12,1871.75,7,0
+Pharmacie Montparnasse,12,1371.30,10,0
+Pharmacie Bastille,9,1151.10,6,0
+Pharmacie Vieux-Port,9,1148.10,6,0
+Pharmacie de la Nation,11,1034.40,9,0
+Pharmacie du Capitole,8,889.50,6,0
+Pharmacie Perrache,8,785.05,6,0
+Pharmacie du Louvre,9,714.80,8,0

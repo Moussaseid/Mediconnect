@@ -1,0 +1,249 @@
+<div class="container-lg py-4 px-3">
+
+  <!-- Sous-navigation -->
+  <nav class="mc-sub-nav">
+    <a routerLink="/recherche" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+      <i class="bi bi-person-heart"></i>Médecins
+    </a>
+    <a routerLink="/recherche/pharmacies" routerLinkActive="active">
+      <i class="bi bi-bag-heart"></i>Pharmacies
+    </a>
+    <a routerLink="/recherche/centres" routerLinkActive="active">
+      <i class="bi bi-hospital"></i>Centres
+    </a>
+  </nav>
+
+  <!-- En-tête -->
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Centres de santé & d'analyse</h1>
+      <p class="mc-page-subtitle">Trouvez un centre médical ou un laboratoire près de vous</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <div class="mc-view-toggle btn-group btn-group-sm" role="group">
+        <button type="button" class="btn"
+          [class.btn-primary]="!vueCarte()"
+          [class.btn-outline-secondary]="vueCarte()"
+          (click)="vueCarte.set(false)">
+          <i class="bi bi-grid-3x3-gap me-1"></i>Liste
+        </button>
+        <button type="button" class="btn"
+          [class.btn-primary]="vueCarte()"
+          [class.btn-outline-secondary]="!vueCarte()"
+          (click)="vueCarte.set(true)">
+          <i class="bi bi-map me-1"></i>Carte
+        </button>
+      </div>
+      <button class="btn btn-outline-primary btn-sm" (click)="geoLocaliser()">
+        <i class="bi bi-crosshair me-1"></i>Me localiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="mc-card p-3 mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-sm-6 col-md-4">
+        <label class="mc-form-label">
+          <i class="bi bi-building me-1"></i>Ville
+        </label>
+        <input type="text" class="form-control form-control-sm"
+               placeholder="Ex : Paris"
+               [value]="ville()"
+               (input)="onVilleChange($any($event.target).value)" />
+      </div>
+      <div class="col-sm-6 col-md-4">
+        <label class="mc-form-label">
+          <span><i class="bi bi-broadcast me-1"></i>Rayon</span>
+          <span class="fw-bold text-body">{{ rayon() }} km</span>
+        </label>
+        <input type="range" class="form-range" [min]="rayonMin" [max]="rayonMax" step="5"
+               [value]="rayon()" (input)="onRayonChange(+$any($event.target).value)">
+      </div>
+      <div class="col-sm-12 col-md-4">
+        <label class="mc-form-label">
+          <i class="bi bi-geo-alt me-1"></i>Autour d'une adresse
+        </label>
+        <app-adresse-autocomplete
+          placeholder="Ex : 10 rue de Rivoli, Paris"
+          [valeur]="adresseAffichee()"
+          (adresseSelectionnee)="onAdresseSelectionnee($event)"
+          (adresseEffacee)="onAdresseEffacee()"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (positionUtilisateur()) {
+    <div class="d-flex align-items-center gap-2 mb-3 p-2 px-3 rounded-2"
+         style="background:var(--mc-indigo-lt);color:var(--mc-indigo);font-size:.82rem">
+      <i class="bi bi-geo-alt-fill"></i>
+      Rayon de <strong class="mx-1">{{ rayon() }} km</strong> autour de la position recherchée
+    </div>
+  }
+
+  <!-- Onglets internes -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="onglet() === 'sante'" (click)="onglet.set('sante')">
+        <i class="bi bi-hospital me-1"></i>Centres de santé
+        @if (centresSante().length > 0) {
+          <span class="badge ms-1" style="background:var(--mc-indigo)">{{ centresSante().length }}</span>
+        }
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="onglet() === 'analyse'" (click)="onglet.set('analyse')">
+        <i class="bi bi-eyedropper me-1"></i>Laboratoires d'analyse
+        @if (centresAnalyse().length > 0) {
+          <span class="badge ms-1" style="background:var(--mc-amber)">{{ centresAnalyse().length }}</span>
+        }
+      </button>
+    </li>
+  </ul>
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      @for (i of [1,2,3,4]; track i) {
+        <div class="col">
+          <div class="mc-card p-3">
+            <div class="d-flex align-items-center gap-3 mb-2">
+              <div class="mc-skeleton flex-shrink-0" style="width:40px;height:40px;border-radius:50%"></div>
+              <div class="flex-grow-1">
+                <div class="mc-skeleton mb-1" style="height:.85rem;width:60%"></div>
+                <div class="mc-skeleton" style="height:.7rem;width:30%"></div>
+              </div>
+            </div>
+            <div class="mc-skeleton mb-1" style="height:.7rem;width:85%"></div>
+            <div class="mc-skeleton" style="height:.7rem;width:40%"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!chargement()) {
+
+    @if (vueCarte()) {
+      <app-carte [medecins]="centresCommeIMedecin" [positionUtilisateur]="positionUtilisateur()"
+                 [rayonKm]="positionUtilisateur() ? rayon() : null"
+                 [adresseUtilisateur]="adresseAffichee()" class="d-block mb-4" />
+      @if (centresSante().length === 0 && centresAnalyse().length === 0) {
+        <p class="text-muted small text-center mt-2">
+          <i class="bi bi-hospital me-1"></i>Aucun centre trouvé dans ce rayon.
+        </p>
+      } @else {
+        <p class="text-muted small mb-0">
+          <strong class="text-body">{{ centresSante().length + centresAnalyse().length }}</strong>
+          centre{{ (centresSante().length + centresAnalyse().length) > 1 ? 's' : '' }} trouvé{{ (centresSante().length + centresAnalyse().length) > 1 ? 's' : '' }}
+        </p>
+      }
+    }
+
+    <!-- Centres de santé -->
+    @if (!vueCarte() && onglet() === 'sante') {
+      @if (centresSante().length === 0) {
+        <div class="mc-empty"><i class="bi bi-hospital"></i><p>Aucun centre de santé trouvé.</p></div>
+      } @else {
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          @for (c of centresSante(); track c.id) {
+            <div class="col">
+              <div class="mc-card h-100 p-3 d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="mc-avatar mc-avatar--sante">
+                    <i class="bi bi-hospital-fill"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold">{{ c.nom }}</div>
+                    <span class="mc-badge-spe mc-badge-spe--sante">Centre de santé</span>
+                  </div>
+                </div>
+                @if (c.adresse) {
+                  <div class="d-flex gap-2 text-muted" style="font-size:.82rem">
+                    <i class="bi bi-geo-alt mt-1 flex-shrink-0 mc-color-sante"></i>
+                    <span>{{ c.adresse }}</span>
+                  </div>
+                }
+                @if (c.description) {
+                  <p class="text-muted mb-0" style="font-size:.82rem">{{ c.description }}</p>
+                }
+                @if (c.specialites) {
+                  <div class="d-flex flex-wrap gap-1">
+                    @for (spe of c.specialites!.split(','); track spe) {
+                      <span class="mc-badge-spe mc-badge-spe--sante" style="font-size:.7rem">{{ spe.trim() }}</span>
+                    }
+                  </div>
+                }
+                @if (c.telephone) {
+                  <div class="d-flex gap-2 text-muted" style="font-size:.82rem">
+                    <i class="bi bi-telephone mc-color-sante"></i>
+                    <a [href]="'tel:' + c.telephone" class="text-decoration-none text-muted">{{ c.telephone }}</a>
+                  </div>
+                }
+                @if (c.distance != null) {
+                  <div class="fw-semibold mc-color-sante" style="font-size:.82rem">
+                    <i class="bi bi-signpost-2 me-1"></i>{{ c.distance }} km
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- Centres d'analyse -->
+    @if (!vueCarte() && onglet() === 'analyse') {
+      @if (centresAnalyse().length === 0) {
+        <div class="mc-empty"><i class="bi bi-eyedropper"></i><p>Aucun laboratoire trouvé.</p></div>
+      } @else {
+        <div class="row row-cols-1 row-cols-md-2 g-3">
+          @for (c of centresAnalyse(); track c.id) {
+            <div class="col">
+              <div class="mc-card h-100 p-3 d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="mc-avatar mc-avatar--analyse">
+                    <i class="bi bi-eyedropper-fill"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold">{{ c.nom }}</div>
+                    <span class="mc-badge-spe mc-badge-spe--analyse">Laboratoire</span>
+                  </div>
+                </div>
+                @if (c.adresse) {
+                  <div class="d-flex gap-2 text-muted" style="font-size:.82rem">
+                    <i class="bi bi-geo-alt mt-1 flex-shrink-0 mc-color-analyse"></i>
+                    <span>{{ c.adresse }}</span>
+                  </div>
+                }
+                @if (c.telephone) {
+                  <div class="d-flex gap-2 text-muted" style="font-size:.82rem">
+                    <i class="bi bi-telephone mc-color-analyse"></i>
+                    <a [href]="'tel:' + c.telephone" class="text-decoration-none text-muted">{{ c.telephone }}</a>
+                  </div>
+                }
+                @if (c.distance != null) {
+                  <div class="fw-semibold mc-color-analyse" style="font-size:.82rem">
+                    <i class="bi bi-signpost-2 me-1"></i>{{ c.distance }} km
+                  </div>
+                }
+                <div class="mt-auto pt-1">
+                  <a [routerLink]="['/recherche/centre-analyse', c.id]" class="btn btn-sm w-100 mc-btn-analyse">
+                    Voir les analyses &rarr;
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
+</div>

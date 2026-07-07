@@ -1,0 +1,42 @@
+# Credentials — ne jamais commiter
+.env
+.env.local
+
+# Dépendances (si Composer plus tard)
+/vendor/
+
+# Logs
+*.log
+error_log
+
+# Cache PHP
+*.cache
+/cache/
+/storage/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+*.swp
+
+# IDE
+.idea/
+.vscode/
+
+# Claude Code (interne)
+.claude/
+
+# Outils IA (MCP, Cursor, etc.)
+.ai/
+
+# Environnement
+.env
+
+# Logs fallback MongoDB
+var/logs/*.log
+
+# Vendor Composer
+vendor/
+
+# Uploads utilisateurs (vide en dev)
+public/uploads/

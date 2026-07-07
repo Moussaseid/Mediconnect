@@ -1,0 +1,55 @@
+<div class="container mt-4">
+  <h2>Mes rendez-vous médecin</h2>
+
+  <div class="alert alert-success" *ngIf="message()">{{ message() }}</div>
+  <div class="alert alert-danger" *ngIf="erreur()">{{ erreur() }}</div>
+
+  <table class="table table-striped" *ngIf="rdvs().length > 0; else aucunRdv">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Patient</th>
+        <th>Statut</th>
+        <th>Motif</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr *ngFor="let rdv of rdvs()">
+        <td>{{ rdv.dateHeure }}</td>
+        <td>{{ rdv.patient?.prenom }} {{ rdv.patient?.nom }}</td>
+        <td>
+          <span
+            class="badge"
+            [ngClass]="rdv.statut === 'confirme' ? 'bg-success' : 'bg-danger'">
+            {{ rdv.statut }}
+          </span>
+        </td>
+        <td>
+          <input
+            *ngIf="rdv.statut === 'confirme'"
+            class="form-control"
+            [(ngModel)]="motifs[rdv.id]"
+            placeholder="Motif obligatoire">
+
+          <span *ngIf="rdv.statut === 'annule'">
+            {{ rdv.motifAnnulation }}
+          </span>
+        </td>
+        <td>
+          <button
+            *ngIf="rdv.statut === 'confirme'"
+            class="btn btn-danger btn-sm"
+            (click)="annuler(rdv)">
+            Annuler
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #aucunRdv>
+    <p>Aucun rendez-vous trouvé.</p>
+  </ng-template>
+</div>

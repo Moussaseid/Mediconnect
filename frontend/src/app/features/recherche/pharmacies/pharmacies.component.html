@@ -1,0 +1,178 @@
+<div class="container-lg py-4 px-3">
+
+  <!-- Sous-navigation -->
+  <nav class="mc-sub-nav">
+    <a routerLink="/recherche" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
+      <i class="bi bi-person-heart"></i>Médecins
+    </a>
+    <a routerLink="/recherche/pharmacies" routerLinkActive="active">
+      <i class="bi bi-bag-heart"></i>Pharmacies
+    </a>
+    <a routerLink="/recherche/centres" routerLinkActive="active">
+      <i class="bi bi-hospital"></i>Centres
+    </a>
+  </nav>
+
+  <!-- En-tête -->
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Pharmacies</h1>
+      <p class="mc-page-subtitle">Trouvez une pharmacie et ses médicaments disponibles</p>
+    </div>
+    <div class="d-flex gap-2">
+      <div class="mc-view-toggle btn-group btn-group-sm">
+        <button class="btn" [class.btn-primary]="!vueCarte()" [class.btn-outline-secondary]="vueCarte()" (click)="vueCarte.set(false)">
+          <i class="bi bi-grid-3x3-gap me-1"></i>Liste
+        </button>
+        <button class="btn" [class.btn-primary]="vueCarte()" [class.btn-outline-secondary]="!vueCarte()" (click)="vueCarte.set(true)">
+          <i class="bi bi-map me-1"></i>Carte
+        </button>
+      </div>
+      <button class="btn btn-outline-primary btn-sm" (click)="geoLocaliser()">
+        <i class="bi bi-crosshair me-1"></i>Me localiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="mc-card p-3 mb-4">
+    <div class="row g-3 align-items-end">
+      <div class="col-sm-6 col-md-3">
+        <label class="mc-form-label">
+          <i class="bi bi-capsule me-1"></i>Médicament recherché
+        </label>
+        <input type="text" class="form-control form-control-sm"
+               placeholder="Ex : Doliprane, Amoxicilline…"
+               [value]="medicamentNom()"
+               (input)="onMedicamentChange($any($event.target).value)" />
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="mc-form-label">
+          <i class="bi bi-building me-1"></i>Ville
+        </label>
+        <input type="text" class="form-control form-control-sm"
+               placeholder="Ex : Paris"
+               [value]="ville()"
+               (input)="onVilleChange($any($event.target).value)" />
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="mc-form-label">
+          <span><i class="bi bi-broadcast me-1"></i>Rayon</span>
+          <span class="fw-bold text-body">{{ rayon() }} km</span>
+        </label>
+        <input type="range" class="form-range" [min]="rayonMin" [max]="rayonMax" step="5"
+               [value]="rayon()" (input)="onRayonChange(+$any($event.target).value)">
+      </div>
+      <div class="col-sm-6 col-md-3">
+        <label class="mc-form-label">
+          <i class="bi bi-geo-alt me-1"></i>Autour d'une adresse
+        </label>
+        <app-adresse-autocomplete
+          placeholder="Ex : 10 rue de Rivoli, Paris"
+          [valeur]="adresseAffichee()"
+          (adresseSelectionnee)="onAdresseSelectionnee($event)"
+          (adresseEffacee)="onAdresseEffacee()"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (positionUtilisateur()) {
+    <div class="d-flex align-items-center gap-2 mb-3 p-2 px-3 rounded-2"
+         style="background:var(--mc-teal-lt);color:var(--mc-teal);font-size:.82rem">
+      <i class="bi bi-geo-alt-fill"></i>
+      Rayon de <strong class="mx-1">{{ rayon() }} km</strong> autour de la position recherchée
+    </div>
+  }
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (chargement()) {
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="col">
+          <div class="mc-card p-3">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="mc-skeleton flex-shrink-0" style="width:44px;height:44px;border-radius:50%"></div>
+              <div class="flex-grow-1">
+                <div class="mc-skeleton mb-2" style="height:.85rem;width:60%"></div>
+                <div class="mc-skeleton" style="height:.7rem;width:35%"></div>
+              </div>
+            </div>
+            <div class="mc-skeleton mb-2" style="height:.7rem;width:75%"></div>
+            <div class="mc-skeleton mt-3" style="height:2rem;width:100%"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!chargement()) {
+    @if (vueCarte()) {
+      <app-carte [medecins]="pharmaciesCommeIMedecin" [positionUtilisateur]="positionUtilisateur()"
+                 [rayonKm]="positionUtilisateur() ? rayon() : null"
+                 [adresseUtilisateur]="adresseAffichee()" class="d-block mb-4" />
+      @if (pharmacies().length === 0) {
+        <p class="text-muted small text-center mt-2">
+          <i class="bi bi-shop-window me-1"></i>Aucune pharmacie trouvée dans ce rayon.
+        </p>
+      } @else {
+        <p class="text-muted small mb-0">
+          <strong class="text-body">{{ total() }}</strong> pharmacie{{ total() > 1 ? 's' : '' }}
+        </p>
+      }
+    } @else {
+      @if (pharmacies().length === 0) {
+        <div class="mc-empty"><i class="bi bi-shop-window"></i><p>Aucune pharmacie trouvée.</p></div>
+      } @else {
+        <p class="text-muted small mb-3">
+          <strong class="text-body">{{ total() }}</strong> pharmacie{{ total() > 1 ? 's' : '' }}
+        </p>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-xl-3 g-3">
+          @for (p of pharmacies(); track p.id) {
+            <div class="col">
+              <div class="mc-card h-100 p-3 d-flex flex-column gap-2">
+                <div class="d-flex align-items-center gap-3">
+                  <div class="mc-avatar mc-avatar--pharma">
+                    <i class="bi bi-bag-heart-fill"></i>
+                  </div>
+                  <div>
+                    <div class="fw-bold">{{ p.nom }}</div>
+                    <span class="mc-badge-spe mc-badge-spe--pharma">Pharmacie</span>
+                  </div>
+                </div>
+                @if (p.adresse) {
+                  <div class="d-flex gap-2 text-muted" style="font-size:.82rem">
+                    <i class="bi bi-geo-alt mt-1 flex-shrink-0 mc-color-pharma"></i>
+                    <span>{{ p.adresse }}@if (p.ville && !p.adresse.includes(p.ville)) {, {{ p.ville }}}</span>
+                  </div>
+                }
+                @if (p.telephone) {
+                  <div class="d-flex gap-2 text-muted" style="font-size:.82rem">
+                    <i class="bi bi-telephone mc-color-pharma"></i>
+                    <a [href]="'tel:' + p.telephone" class="text-decoration-none text-muted">{{ p.telephone }}</a>
+                  </div>
+                }
+                @if (p.distance != null) {
+                  <div class="fw-semibold mc-color-pharma" style="font-size:.82rem">
+                    <i class="bi bi-signpost-2 me-1"></i>{{ p.distance }} km
+                  </div>
+                }
+                <div class="mt-auto pt-1">
+                  <a [routerLink]="['/recherche/pharmacie', p.id]" class="btn btn-sm w-100 mc-btn-pharma">
+                    Voir la pharmacie &rarr;
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
+</div>

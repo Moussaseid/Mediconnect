@@ -1,0 +1,114 @@
+<!-- src/app/features/admin/medecins/medecins.component.html -->
+<div class="container-fluid py-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">Gestion des médecins</h2>
+      <p class="text-muted small mb-0">{{ total() }} médecin(s) enregistré(s)</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary btn-sm" (click)="ouvrirFormulaire()">
+        <i class="bi bi-plus-lg me-1"></i>Ajouter un médecin
+      </button>
+      <a routerLink="/admin/dashboard" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Dashboard
+      </a>
+    </div>
+  </div>
+
+  @if (erreur()) {
+    <div class="alert alert-danger">{{ erreur() }}</div>
+  }
+
+  @if (chargement()) {
+    <div class="text-center py-5"><mat-spinner diameter="48"></mat-spinner></div>
+  }
+
+  @if (!chargement()) {
+    <div class="card shadow-sm">
+      <div class="card-body p-0" style="overflow-x:auto">
+        <table mat-table [dataSource]="datasource" class="w-100">
+
+          <!-- Nom -->
+          <ng-container matColumnDef="nom">
+            <th mat-header-cell *matHeaderCellDef> Médecin </th>
+            <td mat-cell *matCellDef="let m">
+              <strong>Dr {{ m.nom }} {{ m.prenom }}</strong>
+              <div class="text-muted small">{{ m.email }}</div>
+            </td>
+          </ng-container>
+
+          <!-- Email (caché dans la colonne nom) -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef> Email </th>
+            <td mat-cell *matCellDef="let m">{{ m.email }}</td>
+          </ng-container>
+
+          <!-- Spécialisation -->
+          <ng-container matColumnDef="specialisation">
+            <th mat-header-cell *matHeaderCellDef> Spécialité (ID) </th>
+            <td mat-cell *matCellDef="let m">{{ m.specialisation }}</td>
+          </ng-container>
+
+          <!-- RPPS -->
+          <ng-container matColumnDef="numeroRpps">
+            <th mat-header-cell *matHeaderCellDef> N° RPPS </th>
+            <td mat-cell *matCellDef="let m" class="text-muted small">{{ m.numeroRpps }}</td>
+          </ng-container>
+
+          <!-- Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef> Statut </th>
+            <td mat-cell *matCellDef="let m">
+              <span class="badge bg-{{ statutClass(m.statut) }}">{{ m.statut }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-end"> Actions </th>
+            <td mat-cell *matCellDef="let m" class="text-end">
+              <button mat-icon-button color="primary"
+                      matTooltip="Modifier"
+                      (click)="ouvrirFormulaire(m)">
+                <mat-icon>edit</mat-icon>
+              </button>
+
+              <button mat-icon-button
+                      [color]="m.statut === 'actif' ? 'warn' : 'primary'"
+                      [matTooltip]="m.statut === 'actif' ? 'Suspendre' : 'Réactiver'"
+                      (click)="changerStatut(m)">
+                <mat-icon>{{ m.statut === 'actif' ? 'block' : 'check_circle' }}</mat-icon>
+              </button>
+
+              <button mat-icon-button color="warn"
+                      matTooltip="Supprimer définitivement"
+                      (click)="supprimer(m)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="colonnes; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: colonnes;"></tr>
+
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell text-center text-muted py-4" [attr.colspan]="colonnes.length">
+              Aucun médecin trouvé.
+            </td>
+          </tr>
+
+        </table>
+      </div>
+
+      <mat-paginator
+        [length]="total()"
+        [pageSize]="parPage()"
+        [pageSizeOptions]="[10, 15, 25]"
+        [pageIndex]="page() - 1"
+        (page)="onPage($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  }
+</div>

@@ -1,0 +1,186 @@
+<div class="container-lg py-4 px-3" style="max-width:760px">
+
+  <button type="button" class="mc-back-link" (click)="retour()">
+    <i class="bi bi-arrow-left"></i>Retour
+  </button>
+
+  @if (chargement()) {
+    <div class="mc-card p-4 mb-4">
+      <div class="d-flex align-items-center gap-4">
+        <div class="mc-skeleton flex-shrink-0" style="width:72px;height:72px;border-radius:50%"></div>
+        <div class="flex-grow-1">
+          <div class="mc-skeleton mb-2" style="height:1.3rem;width:55%"></div>
+          <div class="mc-skeleton" style="height:.8rem;width:28%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+          @for (i of [1,2,3]; track i) {
+            <div class="mc-info-row"><div class="mc-skeleton" style="height:.8rem;width:75%"></div></div>
+          }
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-skeleton" style="height:2.5rem;border-radius:0"></div>
+          <div class="p-3">
+            @for (i of [1,2]; track i) {
+              <div class="mb-3">
+                <div class="mc-skeleton mb-2" style="height:.75rem;width:35%"></div>
+                <div class="d-flex flex-wrap gap-2">
+                  @for (j of [1,2,3,4]; track j) {
+                    <div class="mc-skeleton" style="height:2rem;width:4.5rem"></div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  @if (medecin(); as m) {
+
+    <!-- En-tête -->
+    <div class="mc-card p-4 mb-4">
+      <div class="d-flex align-items-center gap-4 flex-wrap">
+        <div class="mc-avatar mc-avatar--lg flex-shrink-0">
+          {{ m.prenom.charAt(0) }}{{ m.nom.charAt(0) }}
+        </div>
+        <div class="flex-grow-1">
+          <h1 class="mc-section-title mb-1">Dr {{ m.prenom }} {{ m.nom }}</h1>
+          <span class="mc-badge-spe">{{ m.specialisationLibelle }}</span>
+          @if (m.adresseCabinet) {
+            <div class="d-flex align-items-center gap-2 mt-2 text-muted small">
+              <i class="bi bi-geo-alt" style="color:var(--mc-teal)"></i>
+              {{ m.adresseCabinet }}
+            </div>
+          }
+        </div>
+        <div class="text-center flex-shrink-0">
+          <div class="fw-bold" style="font-size:1.6rem;color:var(--mc-primary);line-height:1">{{ m.dureeRdv }}</div>
+          <div class="text-muted" style="font-size:.72rem;text-transform:uppercase;letter-spacing:.05em">min / consultation</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- Infos de contact -->
+      <div class="col-md-6">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-card-header"><i class="bi bi-person-lines-fill me-2"></i>Contact</div>
+          @if (m.telephone) {
+            <div class="mc-info-row">
+              <span class="mc-info-label"><i class="bi bi-telephone me-2"></i>Téléphone</span>
+              <a [href]="'tel:' + m.telephone" class="mc-info-value text-decoration-none">{{ m.telephone }}</a>
+            </div>
+          }
+          <div class="mc-info-row">
+            <span class="mc-info-label"><i class="bi bi-envelope me-2"></i>Email</span>
+            <a [href]="'mailto:' + m.email" class="mc-info-value text-decoration-none text-truncate ms-2" style="max-width:200px">{{ m.email }}</a>
+          </div>
+          @if (m.numeroRpps) {
+            <div class="mc-info-row">
+              <span class="mc-info-label"><i class="bi bi-shield-check me-2"></i>N° RPPS</span>
+              <span class="mc-info-value font-monospace">{{ m.numeroRpps }}</span>
+            </div>
+          }
+          @if (m.valideLe) {
+            <div class="mc-info-row">
+              <span class="mc-info-label"><i class="bi bi-patch-check me-2"></i>Validé le</span>
+              <span class="mc-info-value">{{ m.valideLe | date:'dd/MM/yyyy' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Créneaux disponibles -->
+      <div class="col-md-6">
+        <div class="mc-card overflow-hidden">
+          <div class="mc-card-header"><i class="bi bi-calendar2-check me-2"></i>Créneaux disponibles</div>
+
+          @if (messageReservation(); as msg) {
+            <div class="alert m-2 mb-0 py-2 small d-flex align-items-center gap-2"
+                 [class.alert-success]="msg.type === 'success'"
+                 [class.alert-danger]="msg.type === 'error'">
+              <i class="bi" [class.bi-check-circle-fill]="msg.type === 'success'" [class.bi-exclamation-triangle-fill]="msg.type === 'error'"></i>
+              {{ msg.texte }}
+            </div>
+          }
+
+          @if (creneauAConfirmer(); as c) {
+            <!-- Panneau de confirmation -->
+            <div class="p-3">
+              <p class="small text-muted mb-3">Confirmez-vous la prise de ce rendez-vous ?</p>
+              <div class="rounded-3 p-3 mb-3 d-flex flex-column gap-2"
+                   style="border:2px solid var(--mc-primary);background:var(--mc-primary-lt,#eef2ff)">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-calendar-event" style="color:var(--mc-primary)"></i>
+                  <span class="fw-semibold text-capitalize">{{ c.date | date:'EEEE d MMMM yyyy' }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-clock" style="color:var(--mc-primary)"></i>
+                  <span class="fw-bold" style="font-size:1.05rem">{{ c.heure }}</span>
+                </div>
+                @if (medecin(); as m) {
+                  <div class="d-flex align-items-center gap-2 text-muted small">
+                    <i class="bi bi-person-fill"></i>
+                    Dr {{ m.prenom }} {{ m.nom }}
+                  </div>
+                }
+              </div>
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary btn-sm flex-grow-1" (click)="confirmerRdv()">
+                  <i class="bi bi-check-lg me-1"></i>Confirmer le rendez-vous
+                </button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" (click)="annulerSelection()">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          } @else if (chargementCreneaux()) {
+            <div class="p-3 text-center">
+              <span class="spinner-border spinner-border-sm text-primary"></span>
+            </div>
+          } @else if (creneaux().length > 0) {
+            <div class="p-3" style="max-height:420px;overflow-y:auto">
+              @for (jour of creneaux(); track jour.date) {
+                <div class="mb-3">
+                  <div class="fw-semibold small mb-2 text-capitalize">{{ jour.date | date:'EEEE d MMMM' }}</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    @for (heure of jour.creneaux; track heure) {
+                      <button type="button" class="btn btn-outline-primary btn-sm"
+                              [disabled]="reservationEnCours() === cleCreneau(jour.date, heure)"
+                              (click)="onCliqueCreneau(jour.date, heure)">
+                        @if (reservationEnCours() === cleCreneau(jour.date, heure)) {
+                          <span class="spinner-border spinner-border-sm"></span>
+                        } @else {
+                          {{ heure }}
+                        }
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="p-3 text-muted small">Aucun créneau disponible dans les prochains jours.</div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
+
+</div>

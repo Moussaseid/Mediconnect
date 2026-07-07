@@ -1,0 +1,28 @@
+<div class="position-relative">
+  <div class="input-group input-group-sm">
+    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+    <input type="text" class="form-control"
+           [placeholder]="placeholder"
+           [value]="requete()"
+           (input)="onSaisie($any($event.target).value)"
+           (focus)="suggestions().length > 0 && ouvert.set(true)"
+           (blur)="fermer()"
+           autocomplete="off" />
+    @if (chargement()) {
+      <span class="input-group-text"><span class="spinner-border spinner-border-sm"></span></span>
+    }
+  </div>
+
+  @if (ouvert() && suggestions().length > 0) {
+    <div class="mc-card position-absolute w-100 mt-1 overflow-hidden" style="z-index:1000;max-height:260px;overflow-y:auto">
+      <div class="list-group list-group-flush">
+        @for (s of suggestions(); track s.label) {
+          <button type="button" class="list-group-item list-group-item-action small py-2"
+                  (mousedown)="choisir(s)">
+            <i class="bi bi-geo-alt-fill me-2 text-muted"></i>{{ s.label }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

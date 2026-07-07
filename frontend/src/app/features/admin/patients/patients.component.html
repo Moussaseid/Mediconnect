@@ -1,0 +1,125 @@
+<!-- src/app/features/admin/patients/patients.component.html -->
+<div class="container-fluid py-4">
+
+  <!-- En-tête -->
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h2 class="fw-bold mb-0">Gestion des patients</h2>
+      <p class="text-muted small mb-0">{{ total() }} patient(s) enregistré(s)</p>
+    </div>
+    <a routerLink="/admin/dashboard" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-arrow-left me-1"></i>Dashboard
+    </a>
+  </div>
+
+  <!-- Barre de recherche + filtre statut -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Rechercher (nom, email, ville…)</mat-label>
+        <input matInput [ngModel]="recherche" (ngModelChange)="onRecherche($event)" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    <div class="col-md-3">
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-label>Statut</mat-label>
+        <mat-select [ngModel]="filtreStatut" (ngModelChange)="onStatut($event)">
+          <mat-option value="">Tous</mat-option>
+          <mat-option value="actif">Actif</mat-option>
+          <mat-option value="en_attente">En attente</mat-option>
+          <mat-option value="suspendu">Suspendu</mat-option>
+          <mat-option value="rejete">Rejeté</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Erreur -->
+  @if (erreur()) {
+    <div class="alert alert-danger">{{ erreur() }}</div>
+  }
+
+  <!-- Spinner -->
+  @if (chargement()) {
+    <div class="text-center py-5">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  <!-- Table Material -->
+  @if (!chargement()) {
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <table mat-table [dataSource]="datasource" matSort class="w-100">
+
+          <!-- Nom -->
+          <ng-container matColumnDef="nom">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Nom </th>
+            <td mat-cell *matCellDef="let p">
+              <strong>{{ p.nom }}</strong> {{ p.prenom }}
+            </td>
+          </ng-container>
+
+          <!-- Email -->
+          <ng-container matColumnDef="email">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Email </th>
+            <td mat-cell *matCellDef="let p">
+              <a href="mailto:{{ p.email }}">{{ p.email }}</a>
+            </td>
+          </ng-container>
+
+          <!-- Téléphone -->
+          <ng-container matColumnDef="telephone">
+            <th mat-header-cell *matHeaderCellDef> Téléphone </th>
+            <td mat-cell *matCellDef="let p"> {{ p.telephone ?? '—' }} </td>
+          </ng-container>
+
+          <!-- Ville -->
+          <ng-container matColumnDef="ville">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Ville </th>
+            <td mat-cell *matCellDef="let p"> {{ p.ville ?? '—' }} </td>
+          </ng-container>
+
+          <!-- Statut -->
+          <ng-container matColumnDef="statut">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Statut </th>
+            <td mat-cell *matCellDef="let p">
+              <span class="badge bg-{{ statutClass(p.statut) }}">{{ p.statut }}</span>
+            </td>
+          </ng-container>
+
+          <!-- Date inscription -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header> Inscrit le </th>
+            <td mat-cell *matCellDef="let p">
+              {{ p.createdAt | date:'dd/MM/yyyy' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="colonnes; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: colonnes;"
+              class="cursor-pointer" style="cursor:pointer"></tr>
+
+          <!-- Ligne vide -->
+          <tr class="mat-row" *matNoDataRow>
+            <td class="mat-cell text-center text-muted py-4" [attr.colspan]="colonnes.length">
+              Aucun patient trouvé.
+            </td>
+          </tr>
+
+        </table>
+      </div>
+
+      <!-- Paginator Material -->
+      <mat-paginator
+        [length]="total()"
+        [pageSize]="parPage()"
+        [pageSizeOptions]="[10, 15, 25, 50]"
+        [pageIndex]="page() - 1"
+        (page)="onPage($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  }
+</div>

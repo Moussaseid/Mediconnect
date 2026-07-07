@@ -1,0 +1,44 @@
+<form [formGroup]="form" class="row g-3 align-items-end">
+
+  <div class="col-sm-6 col-md-3">
+    <label class="mc-form-label">
+      <span><i class="bi bi-stethoscope me-1"></i>Spécialité</span>
+    </label>
+    <select class="form-select form-select-sm" formControlName="specialiteId">
+      <option [ngValue]="null">Toutes les spécialités</option>
+      @for (s of specialites; track s.id) {
+        <option [ngValue]="s.id">{{ s.libelle }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="col-sm-6 col-md-3">
+    <label class="mc-form-label">
+      <span><i class="bi bi-building me-1"></i>Ville</span>
+    </label>
+    <input type="text" class="form-control form-control-sm" formControlName="ville"
+           placeholder="Ex : Paris">
+  </div>
+
+  <div class="col-sm-12 col-md-3">
+    <label class="mc-form-label">
+      <span><i class="bi bi-broadcast me-1"></i>Rayon de recherche</span>
+      <span class="fw-bold text-body">{{ form.value.rayon }} km</span>
+    </label>
+    <input type="range" class="form-range" formControlName="rayon"
+           [min]="rayonMin" [max]="rayonMax" step="5">
+  </div>
+
+  <div class="col-sm-12 col-md-3">
+    <label class="mc-form-label">
+      <span><i class="bi bi-geo-alt me-1"></i>Autour d'une adresse</span>
+    </label>
+    <app-adresse-autocomplete
+      placeholder="Ex : 10 rue de Rivoli, Paris"
+      [valeur]="valeurAdresse"
+      (adresseSelectionnee)="onAdresseSelectionnee($event)"
+      (adresseEffacee)="onAdresseEffacee()"
+    />
+  </div>
+
+</form>

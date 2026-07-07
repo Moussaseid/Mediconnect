@@ -1,0 +1,129 @@
+<div class="container-lg py-4 px-3">
+
+  <!-- En-tête -->
+  <div class="mc-page-header">
+    <div>
+      <h1 class="mc-page-title">Historique</h1>
+      <p class="mc-page-subtitle">Tous vos rendez-vous passés et annulés</p>
+    </div>
+  </div>
+
+  @if (erreur()) {
+    <div class="alert alert-danger d-flex align-items-center gap-2">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ erreur() }}
+    </div>
+  }
+
+  <!-- Skeleton -->
+  @if (chargement()) {
+    <div class="row g-3 mb-4">
+      @for (i of [1,2]; track i) {
+        <div class="col-6 col-sm-3">
+          <div class="mc-card p-3 text-center">
+            <div class="mc-skeleton mx-auto mb-2" style="height:1.6rem;width:3rem"></div>
+            <div class="mc-skeleton mx-auto" style="height:.7rem;width:5rem"></div>
+          </div>
+        </div>
+      }
+    </div>
+    <div class="mc-card overflow-hidden">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="px-3 py-3 border-bottom">
+          <div class="d-flex align-items-center gap-3">
+            <div class="mc-skeleton" style="width:40px;height:40px;border-radius:50%;flex-shrink:0"></div>
+            <div class="flex-grow-1">
+              <div class="mc-skeleton mb-2" style="height:.85rem;width:10rem"></div>
+              <div class="mc-skeleton" style="height:.7rem;width:7rem"></div>
+            </div>
+            <div class="mc-skeleton" style="height:1.6rem;width:5rem;flex-shrink:0"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!chargement() && !erreur()) {
+
+    <!-- Stats rapides -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-sm-4">
+        <div class="mc-card p-3 text-center">
+          <div style="font-size:1.6rem;font-weight:800;color:var(--mc-primary);line-height:1">
+            {{ passes().length }}
+          </div>
+          <div style="font-size:.75rem;color:var(--mc-muted);margin-top:.2rem">Total passés</div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4">
+        <div class="mc-card p-3 text-center">
+          <div style="font-size:1.6rem;font-weight:800;color:#16a34a;line-height:1">
+            {{ effectues() }}
+          </div>
+          <div style="font-size:.75rem;color:var(--mc-muted);margin-top:.2rem">Effectués</div>
+        </div>
+      </div>
+      <div class="col-6 col-sm-4">
+        <div class="mc-card p-3 text-center">
+          <div style="font-size:1.6rem;font-weight:800;color:#dc2626;line-height:1">
+            {{ annules() }}
+          </div>
+          <div style="font-size:.75rem;color:var(--mc-muted);margin-top:.2rem">Annulés</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste -->
+    <div class="mc-card overflow-hidden">
+
+      @if (passes().length === 0) {
+        <div class="mc-empty py-5">
+          <i class="bi bi-calendar-check"></i>
+          <p>Aucun rendez-vous passé pour le moment.</p>
+        </div>
+      } @else {
+        <div class="list-group list-group-flush">
+          @for (r of passes(); track r.id) {
+            <div class="list-group-item px-3 py-3">
+              <div class="d-flex align-items-center gap-3">
+
+                <!-- Avatar patient -->
+                <div class="mc-avatar flex-shrink-0"
+                     style="width:42px;height:42px;font-size:.9rem;opacity:.75">
+                  {{ r.patient?.prenom?.charAt(0) }}{{ r.patient?.nom?.charAt(0) }}
+                </div>
+
+                <!-- Infos -->
+                <div class="flex-grow-1 min-w-0">
+                  <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    <span class="fw-semibold" style="font-size:.9rem">
+                      {{ r.patient?.prenom }} {{ r.patient?.nom }}
+                    </span>
+                    @if (r.statut === 'annule') {
+                      <span class="badge text-bg-danger" style="font-size:.7rem">
+                        Annulé@if (r.annulePar) { · {{ r.annulePar }}}
+                      </span>
+                    } @else {
+                      <span class="badge" style="font-size:.7rem;background:#16a34a">Effectué</span>
+                    }
+                  </div>
+                  <div class="d-flex flex-wrap gap-3" style="font-size:.78rem;color:var(--mc-muted)">
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ r.dateHeure | date:'EEE d MMM yyyy':'':'fr' }}</span>
+                    <span><i class="bi bi-clock me-1"></i>{{ r.dateHeure | date:'HH:mm':'':'fr' }}</span>
+                  </div>
+                  @if (r.motifAnnulation) {
+                    <div class="mt-1" style="font-size:.75rem;color:#dc2626">
+                      <i class="bi bi-chat-left-text me-1"></i>{{ r.motifAnnulation }}
+                    </div>
+                  }
+                </div>
+
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+  }
+
+</div>
